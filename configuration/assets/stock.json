@@ -1,0 +1,9 @@
+{
+  "name": "Stocks",
+  "description": "Stocks and indexes in aggregate",
+  "type": "Equity",
+  "value": 1500000,
+  "appreciation_rate": 0.06,
+  "dividend_yield": 0.02,
+  "expense_rate": 0.001
+}

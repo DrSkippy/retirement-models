@@ -1,0 +1,8 @@
+{
+  "name": "Employment Income",
+  "description": "Salaries in aggregate",
+  "type": "salary",
+  "salary": 300000,
+  "cola": 0.015,
+  "expense_rate": 0.0
+}

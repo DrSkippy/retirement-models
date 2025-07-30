@@ -1,0 +1,16 @@
+{
+  "name": "Brighton Rental Property",
+  "description": "This asset represents the a retnal residence of the individual",
+  "type": "RE",
+  "value": 350000,
+  "debt": 14000,
+  "appreciation_rate": 0.03,
+  "property_tax_rate": 0.0055,
+  "insurance_cost": 1200,
+  "management_fee": 0.10,
+  "rental_income": 2000,
+  "rental_expense_rate": 0.01,
+  "interest_rate": 0.03,
+  "payment": 950
+}
+

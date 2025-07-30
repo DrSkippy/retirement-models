@@ -1,0 +1,9 @@
+{
+  "name": "Bonds",
+  "description": "Bonds and Money Markets in aggregate",
+  "type": "Equity",
+  "value": 500000,
+  "appreciation_rate": 0.015,
+  "dividend_yield": 0.00,
+  "expense_rate": 0.0002
+}
