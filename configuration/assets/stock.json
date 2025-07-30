@@ -3,7 +3,8 @@
   "description": "Stocks and indexes in aggregate",
   "type": "Equity",
   "value": 1500000,
+  "debt": 0,
   "appreciation_rate": 0.06,
-  "dividend_yield": 0.02,
+  "dividend_yield": 0.002,
   "expense_rate": 0.001
 }
