@@ -1,0 +1,7 @@
+#pattern  filter=crypt diff=crypt merge=crypt
+config.json  filter=crypt diff=crypt merge=crypt
+bonds.json  filter=crypt diff=crypt merge=crypt
+job.json  filter=crypt diff=crypt merge=crypt
+primary_residence.json  filter=crypt diff=crypt merge=crypt
+rental1.json  filter=crypt diff=crypt merge=crypt
+stock.json  filter=crypt diff=crypt merge=crypt
