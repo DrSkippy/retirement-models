@@ -1,0 +1,12 @@
+{
+  "name": "Social Security Income",
+  "description": "Social Security including COLA adjustments. Continues to retirement age.",
+  "type": "Salary",
+  "value": 0,
+  "salary": 36000,
+  "cola": 0.015,
+  "expense_rate": 0.0,
+  "debt": 0,
+  "start_date": "retirement",
+  "end_date": "end_date"
+}
