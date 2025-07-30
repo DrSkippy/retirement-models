@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -7,6 +7,10 @@ import seaborn as sns
 
 
 class RetirementFinancialModel:
+
+    FMT = "%Y-%m-%d"
+    FINAL_AGE = 90
+
     def __init__(self, filename=None):
         if not filename:
             print("No configuration file provided, using default values.")
@@ -16,12 +20,11 @@ class RetirementFinancialModel:
                 self.__dict__ = json.loads(rdr.read())
 
         self.today_date = datetime.now()
-        self.current_age = self.current_year - int(self.birth_year)
-        self.spouse_age = self.current_year - int(self.spouse_birth_year)  # Default to age 43
+        self.current_age = self.today_date - datetime.strptime(self.birth_date, self.FMT)
+        self.spouse_current_age = self.today_date - datetime.strptime(self.spouse_birth_date, self.FMT)
+        self.end_date = self.today_date + timedelta(days=(self.FINAL_AGE - self.current_age.days))
 
-    def write_config(self, filename):
-        with open(filename, "w") as wrtr:
-            wrtr.write(json.dumps(self.__dict__))
+
 
     def calculate_quarterly_taxes(self, income_sources, property_value, age):
         """Calculate quarterly taxes on various income sources"""
@@ -86,12 +89,12 @@ class RetirementFinancialModel:
         data = []
 
         # Initial conditions
-        portfolio_value = self.initial_portfolio
-        property_value = self.rental_property_value + self.primary_property_value
-        rental_property_value = self.rental_property_value
-        rental_property_debt = self.rental_debt
-        primary_property_value = self.primary_property_value
-        primary_property_debt = self.primary_debt
+#        portfolio_value = self.initial_portfolio
+#        property_value = self.rental_property_value + self.primary_property_value
+#        rental_property_value = self.rental_property_value
+#        rental_property_debt = self.rental_debt
+#        primary_property_value = self.primary_property_value
+#        primary_property_debt = self.primary_debt
 
         # Simulate quarterly from current age to age 85
         total_quarters = (85 - self.current_age) * 4
