@@ -1,9 +1,10 @@
 import json
-from datetime import datetime
 import logging
-
+from datetime import datetime
 
 class Asset:
+
+    FMT = "%Y-%m-%d"
 
     def __init__(self, filename):
         """
@@ -32,6 +33,13 @@ class Asset:
         logging.debug(f"Initializing asset from {filename}")
         with open(filename, "r") as reader:
             self.__dict__.update(json.load(reader))
+        for key in ['start_date', 'end_date']:
+            if key in self.__dict__:
+                try:
+                    self.__dict__[key] = datetime.strptime(self.__dict__[key], self.FMT).date()
+                    logging.info(f"Parsed date for {key} in {filename}: {e}")
+                except ValueError as e:
+                    logging.info(f"Did not parse date for {key} in {filename}: {e}")
         self._setup()
         logging.debug(f"Asset {self.name} initialized with value: {self.value}, "
                       f"growth_rate: {self.growth_rate}, expense_rate: {self.expense_rate}, "
@@ -51,7 +59,6 @@ class Asset:
         self.income = 0
         self.expenses = 0
         self.debt = 0
-
 
     def _setup(self):
         """
@@ -82,18 +89,24 @@ class Asset:
 
     def period_update(self, period, period_date=None):
         """
-        Manages and calculates asset value, appreciation, and cash flow for a specific period.
+        Updates the asset for a specific period and optionally a specific date, recalculating values based
+        on the asset's conditions and the provided inputs.
 
-        Calculates the appreciation of the asset, performs internal updates, computes the
-        cash flow, and returns the relevant data along with the current period and value.
+        If the period date is within the asset's valid range (start_date and end_date), the appreciation and
+        cash flow are calculated. Otherwise, the values are reset.
 
         Parameters:
-            period (int): The specific period for which the calculation is performed.
-            date (datetime, optional): The date corresponding to the period. Defaults to None.
+            period: int
+                The period identifier for which the update is being applied.
+            period_date: Optional[datetime.date]
+                The specific date associated with the period. Defaults to None.
 
         Returns:
-            Tuple[int, float, float, float]: A tuple containing the period, current asset
-            value, asset appreciation, and cash flow.
+            tuple[int, Optional[float], Optional[float]]
+                A tuple consisting of:
+                - The period identifier (int).
+                - The calculated appreciation value (float or None).
+                - The cash flow value (float or None).
         """
         if self.start_date is not None and self.end_date is not None:
             if period_date is None or (self.start_date <= period_date <= self.end_date):
@@ -102,7 +115,8 @@ class Asset:
                 self._step(period, period_date)
                 cash_flow = self.cash_flow()
             else:
-                logging.info(f"Asset {self.name} not applicable for period {period} on date {period_date}, resetting values.")
+                logging.info(
+                    f"Asset {self.name} not applicable for period {period} on date {period_date}, resetting values.")
                 self._set_zeros()
                 appreciation = 0
                 cash_flow = 0
@@ -128,9 +142,14 @@ class Asset:
         Returns:
             A list containing the compiled snapshot of the financial period.
         """
-        res = [period, self.name, self.description, self.value, self.debt, self.income, self.expenses]
-        if period_date is not None:
-            res.append(period_date.strftime("%Y-%m-%d"))
+        res = [period,
+               period_date,
+               self.name,
+               self.description,
+               self.value,
+               self.debt,
+               self.income,
+               self.expenses]
         if addl is not None:
             res.extend(addl)
         return res
@@ -186,12 +205,9 @@ class Asset:
         """
         for key, value in date_dict.items():
             if self.start_date == key:
-                self.start_date == value
-            if self.end_date == key:
-                self.end_date == value
-
-
-
+                self.start_date = datetime.strptime(value, self.FMT).date()
+            elif self.end_date == key:
+                self.end_date = datetime.strptime(value, self.FMT).date()
 
     def __repr__(self):
         return f"{self.name}: ${self.value:,.2f} (Growth Rate: {self.growth_rate:.2%} Expense Rate: {self.expense_rate:.2%})"
@@ -205,6 +221,7 @@ class REAsset(Asset):
     expenses, debt, and income-related dynamics. It provides an internal setup to initialize
     variables and a stepping mechanism for simulating its financial state over time.
     """
+
     def _setup(self):
         """
         Sets up the financial parameters for property investment simulation.
@@ -231,8 +248,8 @@ class REAsset(Asset):
         ------
         No explicit errors are raised within this method.
         """
-        self.payment = min(self.payment, self.value)
         interest = self.debt * self.interest_rate / 12.
+        self.payment = min(self.payment, self.debt + interest)
         principle = self.payment - interest
         self.debt -= principle
         self.expenses = self.insurance_cost / 12. + interest + self.income_based_expenses * self.payment
@@ -254,13 +271,14 @@ class Equity(Asset):
             The rate of growth for the equity, calculated quarterly.
         expense_rate: float
             The rate of expenses associated with the equity, calculated quarterly.
-        income_rate: float
+        dividend_rate: float
             The income rate (e.g., dividends) for the equity, calculated quarterly.
         expenses: float
             Represents the total incurred expenses for the equity.
         income: float
             Represents the total income generated by the equity.
     """
+
     def _setup(self):
         """
         Initializes quarterly rates for growth, expenses, and income based on
@@ -278,8 +296,8 @@ class Equity(Asset):
             income (float): Accumulated income, initialized to zero.
         """
         self.growth_rate = self.appreciation_rate / 12.
-        self.expense_rate = self.expense_rate / 12.
-        self.income_rate = self.dividend_yield / 12.
+        self.expense_rate /= 12.
+        self.dividend_rate /= 12.
         self.expenses = 0
         self.income = 0
 
@@ -290,7 +308,7 @@ class Equity(Asset):
         Raises:
             AttributeError: If income_rate or value is not set or is not accessible.
         """
-        self.income = self.value * self.income_rate  # Update income based on current value
+        self.income = self.value * self.dividend_rate  # Update income based on current value
 
 
 class SalaryIncome(Asset):
@@ -302,6 +320,7 @@ class SalaryIncome(Asset):
     tracks its growth rate, accounts for related expenses, and computes the current
     income derived from employment in a periodic manner.
     """
+
     def _setup(self):
         """
         Sets up the financial parameters including growth rate, expenses, income, and value. This method
@@ -318,7 +337,6 @@ class SalaryIncome(Asset):
         self.growth_rate = self.cola / 12.  # No appreciation for employment income
         self.expenses = 0  # No expenses
         self.income = self.salary / 12.
-        self.value = 0
 
     def _step(self, period, period_date=None):
         """
@@ -327,7 +345,7 @@ class SalaryIncome(Asset):
         Raises:
             AttributeError: If `income` or `growth_rate` does not exist or cannot be modified.
         """
-        self.income *= 1 + self.growth_rate  # Adjust salary for cost of living adjustment (COLA)
+        self.income *= (1 + self.growth_rate)  # Adjust salary for cost of living adjustment (COLA)
 
 
 def create_assets(path="./configuration/assets"):
@@ -363,7 +381,7 @@ def create_assets(path="./configuration/assets"):
                     logging.debug(f"Loading {fpath} as Equity")
                     asset = Equity(fpath)
                 elif asset_data['type'] == 'Salary':
-                    logging.debug(f"Loading {fpath} as EmploymentIncome")
+                    logging.debug(f"Loading {fpath} as SalaryIncome")
                     asset = SalaryIncome(fpath)
                 else:
                     logging.warning(f"Unknown asset type in {fpath}, skipping.")
@@ -404,5 +422,5 @@ if __name__ == "__main__":
         print("-" * 40)
         for asset in assets:
             print(asset)
-            _,  appreciation, cash_flow = asset.period_update(period)
+            _, appreciation, cash_flow = asset.period_update(period)
             print(f"{asset.period_snapshot(period, addl=[appreciation, cash_flow])}")

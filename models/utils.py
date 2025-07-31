@@ -18,7 +18,7 @@ def create_datetime_sequence(start_date, end_date):
     date_sequence = []
 
     while current_date <= end_date:
-        date_sequence.append(current_date)
+        date_sequence.append(current_date.date())
         current_date += dt
         current_date = current_date.replace(day=1)
 
