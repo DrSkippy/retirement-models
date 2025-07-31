@@ -2,8 +2,8 @@ import json
 import logging
 from datetime import datetime
 
-class Asset:
 
+class Asset:
     FMT = "%Y-%m-%d"
 
     def __init__(self, filename):
@@ -40,10 +40,7 @@ class Asset:
                     logging.info(f"Parsed date for {key} in {filename}: {e}")
                 except ValueError as e:
                     logging.info(f"Did not parse date for {key} in {filename}: {e}")
-        self._setup()
-        logging.debug(f"Asset {self.name} initialized with value: {self.value}, "
-                      f"growth_rate: {self.growth_rate}, expense_rate: {self.expense_rate}, "
-                      f"income: {self.income}, expenses: {self.expenses}")
+        self.setup_run = False
 
     def _set_zeros(self):
         """
@@ -71,6 +68,19 @@ class Asset:
 
         """
         pass
+
+    def investment(self, amount):
+        """
+        Invests a specified amount into the equity asset.
+
+        This method updates the value of the equity asset by adding the specified
+        investment amount to its current value.
+
+        Parameters:
+            amount (float): The amount to invest in the equity asset.
+        """
+        self.value += amount
+        logging.info(f"Invested ${amount:,.2f} into {self.name}. New value: ${self.value:,.2f}")
 
     def _step(self, period, period_date=None):
         """
@@ -108,13 +118,26 @@ class Asset:
                 - The calculated appreciation value (float or None).
                 - The cash flow value (float or None).
         """
+
         if self.start_date is not None and self.end_date is not None:
-            if period_date is None or (self.start_date <= period_date <= self.end_date):
+            if period_date < self.start_date:
+                logging.info(f"Asset {self.name} not applicable for period {period} on date {period_date}, "
+                             f"setting values to zero.")
+                self._set_zeros()
+                appreciation = 0
+                cash_flow = 0
+            elif self.start_date <= period_date:
+                if not self.setup_run:
+                    self._setup()
+                    logging.debug(f"Asset {self.name} initialized with value: {self.value}, "
+                                  f"growth_rate: {self.growth_rate}, expense_rate: {self.expense_rate}, "
+                                  f"income: {self.income}, expenses: {self.expenses}")
+                    self.setup_run = True
                 logging.info(f"Updating asset {self.name} for period {period} on date {period_date}")
                 appreciation = self.asset_appreciation()
                 self._step(period, period_date)
                 cash_flow = self.cash_flow()
-            else:
+            elif period_date > self.end_date:
                 logging.info(
                     f"Asset {self.name} not applicable for period {period} on date {period_date}, resetting values.")
                 self._set_zeros()
@@ -142,6 +165,8 @@ class Asset:
         Returns:
             A list containing the compiled snapshot of the financial period.
         """
+        self.snapshot_header = ["Period", "Date", "Name", "Description", "Value",
+                       "Debt", "Income", "Expenses"]
         res = [period,
                period_date,
                self.name,
@@ -152,7 +177,10 @@ class Asset:
                self.expenses]
         if addl is not None:
             res.extend(addl)
+            for i, _ in enumerate(addl):
+                self.snapshot_header.append(f"Addl_{i}")
         return res
+
 
     def asset_appreciation(self):
         """
@@ -205,9 +233,15 @@ class Asset:
         """
         for key, value in date_dict.items():
             if self.start_date == key:
-                self.start_date = datetime.strptime(value, self.FMT).date()
+                if isinstance(value, str):
+                    self.start_date = datetime.strptime(value, self.FMT).date()
+                else:
+                    self.start_date = value
             elif self.end_date == key:
-                self.end_date = datetime.strptime(value, self.FMT).date()
+                if isinstance(value, str):
+                    self.end_date = datetime.strptime(value, self.FMT).date()
+                else:
+                    self.end_date = value
 
     def __repr__(self):
         return f"{self.name}: ${self.value:,.2f} (Growth Rate: {self.growth_rate:.2%} Expense Rate: {self.expense_rate:.2%})"
@@ -236,8 +270,8 @@ class REAsset(Asset):
         self.growth_rate = self.appreciation_rate / 12.
         self.expense_rate = self.property_tax_rate / 12.
         self.income_based_expenses = (self.management_fee + self.rental_expense_rate) / 12.
-        self.expenses = self.insurance_cost / 12.
         self.income = self.monthly_rental_income
+        self.expenses = self.insurance_cost / 12.  # Monthly insurance cost
 
     def _step(self, period, period_date=None):
         """
@@ -336,6 +370,11 @@ class SalaryIncome(Asset):
         """
         self.growth_rate = self.cola / 12.  # No appreciation for employment income
         self.expenses = 0  # No expenses
+        if "age_based_benefit" in self.__dict__:
+            self.salary = self.age_based_benefit[self.benefit_age] * 12.
+            logging.info(f"Using benefit for retirement age {self.benefit_age}: {self.salary}")
+        else:
+            logging.info(f"No age based benefit found, using salary: {self.salary}")
         self.income = self.salary / 12.
 
     def _step(self, period, period_date=None):
@@ -345,7 +384,7 @@ class SalaryIncome(Asset):
         Raises:
             AttributeError: If `income` or `growth_rate` does not exist or cannot be modified.
         """
-        self.income *= (1 + self.growth_rate)  # Adjust salary for cost of living adjustment (COLA)
+        self.income *= (1. + self.growth_rate)  # Adjust salary for cost of living adjustment (COLA)
 
 
 def create_assets(path="./configuration/assets"):

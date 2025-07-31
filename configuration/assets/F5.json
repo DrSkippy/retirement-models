@@ -8,5 +8,6 @@
   "expense_rate": 0.0,
   "debt": 0,
   "start_date": "first_date",
-  "end_date": "retirement"
+  "end_date": "retirement",
+  "tax_class": "income"
 }

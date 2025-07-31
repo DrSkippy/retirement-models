@@ -1,0 +1,13 @@
+{
+  "name": "401k Bonds",
+  "description": "Bonds and Money Markets in aggregate",
+  "type": "Equity",
+  "value": 500000,
+  "debt": 0,
+  "appreciation_rate": 0.015,
+  "dividend_rate": 0.00,
+  "expense_rate": 0.0002,
+  "start_date": "first_date",
+  "end_date": "end_date",
+  "tax_class": "income"
+}

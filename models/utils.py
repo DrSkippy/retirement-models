@@ -2,8 +2,9 @@ from datetime import datetime
 from datetime import timedelta
 
 def create_datetime_sequence(start_date, end_date):
-    start_date = datetime.strptime(start_date, "%Y-%m-%d")
-    end_date = datetime.strptime(end_date, "%Y-%m-%d")
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date, "%Y-%m-%d")
+        end_date = datetime.strptime(end_date, "%Y-%m-%d")
     dt = timedelta(days=32)
 
     """
@@ -18,7 +19,7 @@ def create_datetime_sequence(start_date, end_date):
     date_sequence = []
 
     while current_date <= end_date:
-        date_sequence.append(current_date.date())
+        date_sequence.append(current_date)
         current_date += dt
         current_date = current_date.replace(day=1)
 
