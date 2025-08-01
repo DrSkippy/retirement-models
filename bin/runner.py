@@ -15,7 +15,7 @@ dictConfig({
             'filename': 'assets.log',
             'mode': 'a',
             'encoding': 'utf-8',
-            'maxBytes': 900000,
+            'maxBytes': 2500000,
             'backupCount': 3
         }},
     'root': {

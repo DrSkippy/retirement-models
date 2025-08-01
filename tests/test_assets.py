@@ -21,7 +21,7 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(a.start_date, datetime.strptime("2020-01-01", self.FMT).date())
         self.assertEqual(a.end_date, datetime.strptime("2020-04-01", self.FMT).date())
 
-    def test_F5_retirement(self):
+    def test_F5_salar(self):
         a = SalaryIncome("./configuration/assets/F5.json")
 
         model_dates = {"first_date": "2020-01-01",
@@ -31,14 +31,15 @@ class MyTestCase(unittest.TestCase):
         a.set_scenario_dates(model_dates)
         date_range = create_datetime_sequence(model_dates["first_date"], model_dates["end_date"])
         for p, pdate in enumerate(date_range):
+            print(pdate, a.start_date, a.end_date)
             a.period_update(p, pdate)
             a.growth_rate = 0.0
             x = a.period_snapshot(p, pdate)
             self.assertEqual(x[0], p)
             self.assertEqual(x[1], pdate)
-            if p > 3:  # After retirement
+            if p > 2:  # After retirement
                 self.assertEqual(x[6], 0.)
-            else:
+            if p == 1:  # Before retirement
                 self.assertEqual(x[6], 25031.25) # 1 month of COLA
 
     def test_socsec_income(self):
@@ -101,11 +102,11 @@ class MyTestCase(unittest.TestCase):
             x = a.period_snapshot(p, pdate)
             self.assertEqual(x[0], p)
             self.assertEqual(x[1], pdate)
-            if p == 100:  # After 10 years
-                self.assertAlmostEqual(x[4], 100000 * (1. + a.growth_rate) ** 101)
+            if p == 10:  # After 10 years
+                self.assertAlmostEqual(x[4], 100000 * (1. + a.growth_rate) ** 11)
                 a.investment(10000)
-            elif p == 120:
-                self.assertAlmostEqual(x[4], 100000 * (1. + a.growth_rate) ** 121 + 10000 * (1. + a.growth_rate) ** 20)
+            elif p == 12:
+                self.assertAlmostEqual(x[4], 100000 * (1. + a.growth_rate) ** 13 + 10000 * (1. + a.growth_rate) ** 2, 2)
 
 
 if __name__ == '__main__':

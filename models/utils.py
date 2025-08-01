@@ -3,8 +3,8 @@ from datetime import timedelta
 
 def create_datetime_sequence(start_date, end_date):
     if isinstance(start_date, str):
-        start_date = datetime.strptime(start_date, "%Y-%m-%d")
-        end_date = datetime.strptime(end_date, "%Y-%m-%d")
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
     dt = timedelta(days=32)
 
     """

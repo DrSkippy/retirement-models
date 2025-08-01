@@ -70,21 +70,26 @@ class RetirementFinancialModel:
                 addl = asset.period_update(p, pdate)
                 snapshot = asset.period_snapshot(p, pdate, addl=addl[1:])
                 adata[asset.name].append(snapshot)
+            # tax basis
             monthly_income = self.calculate_monthly_income()
-            taxes = self.calculate_monthly_taxes()
-            free_cash_flows = self.calculate_free_cash_flows()
-            if free_cash_flows > taxes and age < self.retirement_age:
-                investment = self.savings_rate * free_cash_flows
-                self.invest_evenly(investment * self.stock_allocation, "stock")
-                self.invest_evenly(investment * self.bond_allocation,  "bond")
-            elif age >= self.retirement_age:
+            # 401k withdrawals
+            withdraw_amount = 0.0
+            if age >= self.retirement_age:
                 withdraw_amount = self.withdrawal_rate * self.calculate_retirement_portfolio_value()/ 12.
-                free_cash_flows += withdraw_amount
                 # decrement asset values by withdrawal
                 self.invest_evenly(withdraw_amount * self.stock_allocation, "stock")
                 self.invest_evenly(withdraw_amount * self.bond_allocation, "bond")
-            else:
-                investment = 0.0
+                monthly_income += withdraw_amount
+            # Calculate taxes on total income
+            taxes = self.calculate_monthly_taxes(withdraw_amount)
+            # Calculate free cash flows after asset-specific taxes and expenses
+            free_cash_flows = self.calculate_free_cash_flows() - taxes
+            investment = 0.0
+            if free_cash_flows > 0 and age < self.retirement_age:
+                logging.info(f"Free cash flows: {free_cash_flows}, Taxes: {taxes}, Age: {age}")
+                investment = self.savings_rate * free_cash_flows
+                self.invest_evenly(investment * self.stock_allocation, "stock")
+                self.invest_evenly(investment * self.bond_allocation,  "bond")
             unallocated_cash = free_cash_flows - taxes - investment
             net_worth = self.net_worth()
             mdata.append([p, pdate, age, net_worth, monthly_income, taxes, free_cash_flows, investment, unallocated_cash])
@@ -134,13 +139,14 @@ class RetirementFinancialModel:
         return monthly_income
 
 
-    def calculate_monthly_taxes(self):
+    def calculate_monthly_taxes(self, withdraw_amount=0.0):
         income_classes = {"income": 0.0, "capital_gain": 0.0, "social_security": 0.0}
         for asset in self.assets:
             income_classes[asset.tax_class] += asset.income
         monthly_taxes = 0.0
         for tax_class in income_classes:
             monthly_taxes = income_classes[tax_class] * self.tax_classes[tax_class]
+        monthly_taxes += withdraw_amount*self.tax_classes["income"]
         return monthly_taxes
 
     def get_asset_dataframe(self, asset_name, asset_model_dict, asset_model_header):

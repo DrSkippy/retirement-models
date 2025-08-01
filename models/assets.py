@@ -126,7 +126,7 @@ class Asset:
                 self._set_zeros()
                 appreciation = 0
                 cash_flow = 0
-            elif self.start_date <= period_date:
+            elif self.start_date <= period_date < self.end_date:
                 if not self.setup_run:
                     self._setup()
                     logging.debug(f"Asset {self.name} initialized with value: {self.value}, "
@@ -137,7 +137,8 @@ class Asset:
                 appreciation = self.asset_appreciation()
                 self._step(period, period_date)
                 cash_flow = self.cash_flow()
-            elif period_date > self.end_date:
+            else:
+                # period_date > self.end_date:
                 logging.info(
                     f"Asset {self.name} not applicable for period {period} on date {period_date}, resetting values.")
                 self._set_zeros()
