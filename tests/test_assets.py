@@ -79,7 +79,7 @@ class MyTestCase(unittest.TestCase):
             if p == 156:
                 self.assertEqual(x[5], 0.)
                 self.assertAlmostEqual(x[4], 1000000 * (1. + a.growth_rate) ** 157)
-            print(p, pdate, a.debt, a.value)
+            #print(p, pdate, a.debt, a.value)
 
     def test_stock_equity(self):
         a = Equity("./configuration/assets/401k_stock.json")

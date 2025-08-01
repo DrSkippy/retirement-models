@@ -41,6 +41,10 @@ if __name__ == "__main__":
         df = model.get_asset_dataframe(asset.name, am, ah)
         model.plot_asset_model_data(df, asset.name)
 
+    df = model.get_scenario_dataframe(rm, rh)
+    model.plot_asset_model_data(df, 'Retirement Model')
+
+
 # REPLACED     # Generate summary reports from the results
 # REPLACED     summary_data = model.generate_reports(results)
 # REPLACED
