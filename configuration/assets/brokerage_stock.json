@@ -2,12 +2,11 @@
   "name": "Stocks",
   "description": "Non retirement Stocks and indexes in aggregate",
   "type": "Equity",
-  "value": 300000,
-  "debt": 0,
-  "appreciation_rate": 0.06,
-  "dividend_rate": 0.002,
-  "expense_rate": 0.001,
+  "initial_value": 300000,
+  "initial_expense_rate": 0.001,
   "start_date": "first_date",
   "end_date": "end_date",
-  "tax_class": "capital_gain"
+  "tax_class": "capital_gain",
+  "appreciation_rate": 0.06,
+  "dividend_rate": 0.002
 }

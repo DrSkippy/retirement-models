@@ -1,0 +1,19 @@
+{
+  "name": "Brighton Rental Property",
+  "description": "This asset represents the a rental residence in Brighton",
+  "type": "RealEstate",
+  "initial_value": 392000,
+  "initial_debt": 25654.11,
+  "appreciation_rate": 0.02,
+  "property_tax_rate": 0.0055,
+  "insurance_cost": 1200,
+  "management_fee": 0.10,
+  "monthly_rental_income": 2000,
+  "rental_expense_rate": 0.10,
+  "interest_rate": 0.02875,
+  "payment": 924.28,
+  "start_date": "first_date",
+  "end_date": "end_date",
+  "tax_class": "income"
+}
+

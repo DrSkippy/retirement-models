@@ -42,24 +42,4 @@ if __name__ == "__main__":
         model.plot_asset_model_data(df, asset.name)
 
     df = model.get_scenario_dataframe(rm, rh)
-    model.plot_asset_model_data(df, 'Retirement Model')
-
-
-# REPLACED     # Generate summary reports from the results
-# REPLACED     summary_data = model.generate_reports(results)
-# REPLACED
-# REPLACED     # Save results to CSV for further analysis
-# REPLACED     summary_data.to_csv('retirement_model_results.csv', index=False)
-# REPLACED
-# REPLACED     print(f"\nDetailed results saved to 'retirement_model_results.csv'")
-# REPLACED     print(f"Total scenarios modeled: {len(results)}")
-# REPLACED     print(f"Total quarters analyzed: {len(summary_data)}")
-# REPLACED     model = RetirementFinancialModel(CONFIG_FILE)
-# REPLACED     results = model.run_model(['base', 'delayed_ss'])
-# REPLACED     summary_data = model.generate_reports(results)
-# REPLACED
-# REPLACED     # Save results to CSV for further analysis
-# REPLACED     summary_data.to_csv('retirement_model_results.csv', index=False)
-# REPLACED     print(f"\nDetailed results saved to 'retirement_model_results.csv'")
-# REPLACED     print(f"Total scenarios modeled: {len(results)}")
-# REPLACED     print(f"Total quarters analyzed: {len(summary_data)}")
+    model.plot_asset_model_data(df, 'Retirement Model', 2)

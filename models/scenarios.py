@@ -154,7 +154,7 @@ class RetirementFinancialModel:
         """Get model data as a DataFrame"""
         return pd.DataFrame(model_data, columns=model_header)
 
-    def plot_asset_model_data(self, df, name):
+    def plot_asset_model_data(self, df, name, offset=4):
         """Plot asset model data"""
         if df.empty:
             logging.error("No data to plot.")
@@ -164,19 +164,19 @@ class RetirementFinancialModel:
         cols = 2
         rows = 3
         fig, axes = plt.subplots(cols, rows, figsize=(20, 12))
-        fig.suptitle('Retirement Financial Model - Comprehensive Analysis', fontsize=16, fontweight='bold')
+        fig.suptitle('Retirement Financial Model - Comprehensive Analysis', fontsize=26, fontweight='bold')
 
-        header_list = df.columns.tolist()[4:]  # Exclude 'Date' and 'Period' columns
+        header_list = df.columns.tolist()[offset:]  # Exclude 'Date' and 'Period' columns
         # plot indexes
         for i in range(cols):
             for j in range(rows):
                 try:
                     column = header_list.pop()
                     axes[i, j].plot(df['Date'], df[column], label=column)
-                    axes[i, j].set_title(f'{name} Asset Model Data Over Time')
-                    axes[i, j].set_xlabel('Date')
-                    axes[i, j].set_ylabel('Value')
-                    axes[i, j].legend()
+                    axes[i, j].set_title(f'{name} Asset Model Data Over Time', fontsize=20)
+                    axes[i, j].set_xlabel('Date', fontsize=20)
+                    axes[i, j].set_ylabel('Value', fontsize=20)
+                    axes[i, j].legend(fontsize=20)
                     axes[i, j].grid()
                 except IndexError:
                     break

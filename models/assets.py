@@ -33,6 +33,7 @@ class Asset:
         logging.debug(f"Initializing asset from {filename}")
         with open(filename, "r") as reader:
             self.__dict__.update(json.load(reader))
+        self.set_zeros()
         for key in ['start_date', 'end_date']:
             if key in self.__dict__:
                 try:
@@ -42,7 +43,7 @@ class Asset:
                     logging.info(f"Did not parse date for {key} in {filename}: {e}")
         self.setup_run = False
 
-    def _set_zeros(self):
+    def set_zeros(self):
         """
         Sets the asset's value, income, expenses, and debt to zero.
 
@@ -123,7 +124,7 @@ class Asset:
             if period_date < self.start_date:
                 logging.info(f"Asset {self.name} not applicable for period {period} on date {period_date}, "
                              f"setting values to zero.")
-                self._set_zeros()
+                self.set_zeros()
                 appreciation = 0
                 cash_flow = 0
             elif self.start_date <= period_date < self.end_date:
@@ -141,7 +142,7 @@ class Asset:
                 # period_date > self.end_date:
                 logging.info(
                     f"Asset {self.name} not applicable for period {period} on date {period_date}, resetting values.")
-                self._set_zeros()
+                self.set_zeros()
                 appreciation = 0
                 cash_flow = 0
         else:
@@ -268,6 +269,8 @@ class REAsset(Asset):
         adjusts the monthly rental income for the simulated period.
 
         """
+        self.value = self.initial_value  # Initial value of the property
+        self.debt = self.initial_debt  # Initial debt on the property
         self.growth_rate = self.appreciation_rate / 12.
         self.expense_rate = self.property_tax_rate / 12.
         self.income_based_expenses = (self.management_fee + self.rental_expense_rate) / 12.
@@ -331,10 +334,9 @@ class Equity(Asset):
             income (float): Accumulated income, initialized to zero.
         """
         self.growth_rate = self.appreciation_rate / 12.
-        self.expense_rate /= 12.
+        self.expense_rate = self.initial_expense_rate / 12.
         self.dividend_rate /= 12.
-        self.expenses = 0
-        self.income = 0
+        self.value = self.initial_value
 
     def _step(self, period, period_date=None):
         """
@@ -391,7 +393,7 @@ class SalaryIncome(Asset):
 def create_assets(path="./configuration/assets"):
     """
     Processes JSON files in a specified directory to create asset objects based on their type. Supported
-    asset types include 'RE', 'Equity', and 'Salary'. Unrecognized asset types are logged and skipped.
+    asset types include 'RealEstate', 'Equity', and 'Salary'. Unrecognized asset types are logged and skipped.
 
     Parameters:
         path: str
@@ -414,7 +416,7 @@ def create_assets(path="./configuration/assets"):
             fpath = os.path.join(path, filename)
             with (open(fpath, 'r') as file):
                 asset_data = json.load(file)
-                if asset_data['type'] == 'RE':
+                if asset_data['type'] == 'RealEstate':
                     logging.debug(f"Loading {fpath} as RE")
                     asset = REAsset(fpath)
                 elif asset_data['type'] == 'Equity':
