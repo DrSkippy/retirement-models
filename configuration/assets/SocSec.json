@@ -2,7 +2,6 @@
   "name": "Social Security Income",
   "description": "Social Security including COLA adjustments. Continues to retirement age.",
   "type": "Salary",
-  "value": 0,
   "age_based_benefit": {
     "61": 0.0,
     "62": 2831.0,
@@ -13,10 +12,8 @@
     "67": 4018.0,
     "70": 5108.0
   },
-  "benefit_age": "67",
+  "benefit_age": "67"    # FIX this to be the retirement age from config,
   "cola": 0.015,
-  "expense_rate": 0.0,
-  "debt": 0,
   "start_date": "retirement",
   "end_date": "end_date",
   "tax_class": "social_security"

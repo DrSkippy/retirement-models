@@ -66,7 +66,7 @@ class RetirementFinancialModel:
             age = (pdate - self.birth_date).days / 365.25
             for asset in self.assets:
                 addl = asset.period_update(p, pdate)
-                snapshot = asset.period_snapshot(p, pdate, addl=addl[1:])
+                snapshot = asset.period_snapshot(p, pdate, addl={"Appreciation": addl[1], "Cash-flow": addl[2]})
                 adata[asset.name].append(snapshot)
             # tax basis
             monthly_income = self.calculate_monthly_income()
@@ -81,14 +81,14 @@ class RetirementFinancialModel:
             # Calculate taxes on total income
             taxes = self.calculate_monthly_taxes(withdraw_amount)
             # Calculate free cash flows after asset-specific taxes and expenses
-            free_cash_flows = self.calculate_free_cash_flows() - taxes
+            free_cash_flows = monthly_income + self.calculate_free_cash_flows() - taxes
             investment = 0.0
             if free_cash_flows > 0 and age < self.retirement_age:
                 logging.info(f"Free cash flows: {free_cash_flows}, Taxes: {taxes}, Age: {age}")
                 investment = self.savings_rate * free_cash_flows
                 self.invest_evenly(investment * self.stock_allocation, "401k stock")
                 self.invest_evenly(investment * self.bond_allocation, "401k bond")
-            unallocated_cash = free_cash_flows - taxes - investment
+            unallocated_cash = monthly_income - free_cash_flows - taxes - investment
             net_worth = self.net_worth()
             mdata.append(
                 [p, pdate, age, net_worth, monthly_income, taxes, free_cash_flows, investment, unallocated_cash])

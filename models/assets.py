@@ -18,23 +18,22 @@ class Asset:
          - name
          - description
          - type # e.g., RE, Equity, Salary
-         - value # Sum of all assets values is net equity
-         - growth_rate # quarterly appreciation rate
-         - expense_rate # quarterly expense rate
-         - income # quarterly income from the asset
-         - expenses # quarterly expenses from the asset
-         - debt # e.g., mortgage, loan, etc.
-
+         - start_date
+         - end_date
+         - initial_value
+         - initial_debt
+         - tax_class
 
         Parameters:
         filename: str
             The path to the JSON file that contains the asset data.
         """
-        logging.debug(f"Initializing asset from {filename}")
+        logging.debug(f"i *** Initializing asset from {filename} ***")
         with open(filename, "r") as reader:
             self.__dict__.update(json.load(reader))
-        self.set_zeros()
+        self.set_zeros()   # Ensure all financial attributes are initialized to zero
         for key in ['start_date', 'end_date']:
+            # Attempt to parse date strings into datetime.date objects
             if key in self.__dict__:
                 try:
                     self.__dict__[key] = datetime.strptime(self.__dict__[key], self.FMT).date()
@@ -42,6 +41,7 @@ class Asset:
                 except ValueError as e:
                     logging.info(f"Did not parse date for {key} in {filename}: {e}")
         self.setup_run = False
+        logging.debug(f"Initial values of required values: {str(self)}")
 
     def set_zeros(self):
         """
@@ -57,6 +57,8 @@ class Asset:
         self.income = 0
         self.expenses = 0
         self.debt = 0
+        self.growth_rate = 0
+        self.expense_rate = 0
 
     def _setup(self):
         """
@@ -70,7 +72,7 @@ class Asset:
         """
         pass
 
-    def investment(self, amount):
+    def investment(self, incremental_investment):
         """
         Invests a specified amount into the equity asset.
 
@@ -78,10 +80,10 @@ class Asset:
         investment amount to its current value.
 
         Parameters:
-            amount (float): The amount to invest in the equity asset.
+            incremental_investment (float): The amount to invest in the equity asset.
         """
-        self.value += amount
-        logging.info(f"Invested ${amount:,.2f} into {self.name}. New value: ${self.value:,.2f}")
+        self.value += incremental_investment
+        logging.info(f"Invested ${incremental_investment:,.2f} into {self.name}. New value: ${self.value:,.2f}")
 
     def _step(self, period, period_date=None):
         """
@@ -119,27 +121,22 @@ class Asset:
                 - The calculated appreciation value (float or None).
                 - The cash flow value (float or None).
         """
-
         if self.start_date is not None and self.end_date is not None:
             if period_date < self.start_date:
-                logging.info(f"Asset {self.name} not applicable for period {period} on date {period_date}, "
-                             f"setting values to zero.")
-                self.set_zeros()
+                logging.info(f"Asset {self.name} not applicable for period {period} on date {period_date}")
                 appreciation = 0
                 cash_flow = 0
             elif self.start_date <= period_date < self.end_date:
                 if not self.setup_run:
                     self._setup()
-                    logging.debug(f"Asset {self.name} initialized with value: {self.value}, "
-                                  f"growth_rate: {self.growth_rate}, expense_rate: {self.expense_rate}, "
-                                  f"income: {self.income}, expenses: {self.expenses}")
+                    logging.debug(f"After first run of setup: {str(self)}")
                     self.setup_run = True
                 logging.info(f"Updating asset {self.name} for period {period} on date {period_date}")
                 appreciation = self.asset_appreciation()
                 self._step(period, period_date)
                 cash_flow = self.cash_flow()
             else:
-                # period_date > self.end_date:
+                # period_date >= self.end_date:
                 logging.info(
                     f"Asset {self.name} not applicable for period {period} on date {period_date}, resetting values.")
                 self.set_zeros()
@@ -151,7 +148,7 @@ class Asset:
             cash_flow = None
         return period, appreciation, cash_flow
 
-    def period_snapshot(self, period, period_date=None, addl=None):
+    def period_snapshot(self, period, period_date=None, addl={}):
         """
         Generates a snapshot of the financial period with additional details.
 
@@ -160,7 +157,7 @@ class Asset:
 
         Arguments:
             period: The financial period for which the snapshot is generated.
-            addl: Optional, a list containing additional data to include in the snapshot.
+            addl: Optional, a dict containing additional data to include in the snapshot.
             date: Optional, a datetime object representing a specific date to include
                 in the snapshot.
 
@@ -177,10 +174,10 @@ class Asset:
                self.debt,
                self.income,
                self.expenses]
-        if addl is not None:
-            res.extend(addl)
-            for i, _ in enumerate(addl):
-                self.snapshot_header.append(f"Addl_{i}")
+        if len(addl) > 0:
+            for key, value in addl.items():
+                res.append(value)
+                self.snapshot_header.append(key)
         return res
 
 
@@ -246,7 +243,8 @@ class Asset:
                     self.end_date = value
 
     def __repr__(self):
-        return f"{self.name}: ${self.value:,.2f} (Growth Rate: {self.growth_rate:.2%} Expense Rate: {self.expense_rate:.2%})"
+        return (f"{self.name}: ${self.value:,.2f}, ${self.debt:,.2f}, ${self.income:,.2f}, "
+                f"${self.expenses:,.2f} ,{self.growth_rate:,.2f}, {self.expense_rate:,.2f}, ")
 
 
 class REAsset(Asset):
@@ -372,13 +370,12 @@ class SalaryIncome(Asset):
             value (int): The initial value, set to 0.
         """
         self.growth_rate = self.cola / 12.  # No appreciation for employment income
-        self.expenses = 0  # No expenses
         if "age_based_benefit" in self.__dict__:
-            self.salary = self.age_based_benefit[self.benefit_age] * 12.
+            self.salary = self.age_based_benefit[self.benefit_age]
             logging.info(f"Using benefit for retirement age {self.benefit_age}: {self.salary}")
         else:
             logging.info(f"No age based benefit found, using salary: {self.salary}")
-        self.income = self.salary / 12.
+            self.income = self.salary / 12.
 
     def _step(self, period, period_date=None):
         """
@@ -431,38 +428,3 @@ def create_assets(path="./configuration/assets"):
                 asset.__dict__.update(asset_data)
                 assets.append(asset)
     return assets
-
-
-if __name__ == "__main__":
-    from logging.config import dictConfig
-
-    dictConfig({
-        'version': 1,
-        'formatters': {'default': {
-            'format': '[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
-        }},
-        'handlers': {
-            'file': {
-                'class': 'logging.handlers.RotatingFileHandler',
-                'formatter': 'default',
-                'level': 'DEBUG',
-                'filename': 'assets.log',
-                'mode': 'a',
-                'encoding': 'utf-8',
-                'maxBytes': 900000,
-                'backupCount': 3
-            }},
-        'root': {
-            'level': 'DEBUG',
-            'handlers': ['file']
-        }
-    })
-
-    assets = create_assets()
-    for period in range(0, 3 * 4):
-        print(f"Period: {period}")
-        print("-" * 40)
-        for asset in assets:
-            print(asset)
-            _, appreciation, cash_flow = asset.period_update(period)
-            print(f"{asset.period_snapshot(period, addl=[appreciation, cash_flow])}")

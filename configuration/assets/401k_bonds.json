@@ -3,7 +3,7 @@
   "description": "Bonds and Money Markets in 401ks",
   "type": "Equity",
   "initial_value": 500000,
-  "initial_expense_rate": 0.0002,
+  "initial_expense_rate": 0.005,
   "start_date": "first_date",
   "end_date": "end_date",
   "tax_class": "income",

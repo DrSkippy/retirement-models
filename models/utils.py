@@ -2,11 +2,6 @@ from datetime import datetime
 from datetime import timedelta
 
 def create_datetime_sequence(start_date, end_date):
-    if isinstance(start_date, str):
-        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
-        end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
-    dt = timedelta(days=32)
-
     """
     Create a sequence of datetime objects from start_date to end_date with a specified step in days.
     
@@ -15,6 +10,11 @@ def create_datetime_sequence(start_date, end_date):
     :param step_days: The number of days to increment for each step in the sequence.
     :return: A list of datetime objects.
     """
+    if isinstance(start_date, str):
+        start_date = datetime.strptime(start_date, "%Y-%m-%d").date()
+        end_date = datetime.strptime(end_date, "%Y-%m-%d").date()
+    dt = timedelta(days=32)
+
     current_date = start_date
     date_sequence = []
 
