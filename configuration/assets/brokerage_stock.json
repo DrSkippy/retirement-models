@@ -4,9 +4,9 @@
   "type": "Equity",
   "initial_value": 300000,
   "initial_expense_rate": 0.001,
+  "appreciation_rate": 0.06,
+  "dividend_rate": 0.002,
   "start_date": "first_date",
   "end_date": "end_date",
-  "tax_class": "capital_gain",
-  "appreciation_rate": 0.06,
-  "dividend_rate": 0.002
+  "tax_class": "capital_gain"
 }

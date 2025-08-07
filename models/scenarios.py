@@ -1,7 +1,9 @@
+import logging
+
 import matplotlib.pyplot as plt
 import pandas as pd
+from pandas.plotting import andrews_curves
 
-from models.assets import *
 from models.utils import *
 
 
@@ -25,21 +27,17 @@ class RetirementFinancialModel:
         self.spouse_birth_date = datetime.strptime(self.spouse_birth_date, FMT).date()
         self.current_age = (self.today_date - self.birth_date).days / DAYS_IN_YEAR
         self.spouse_current_age = (self.today_date - self.spouse_birth_date).days / DAYS_IN_YEAR
-        logging.info(f"Current age: {self.current_age:.2f}, Spouse's age: {self.spouse_current_age:.2f}")
+        logging.info(f"Current age: {self.current_age:.1f}, Spouse's age: {self.spouse_current_age:.1f}")
 
         self.start_date = datetime.strptime(self.start_date, FMT).date()
         self.end_date = datetime.strptime(self.end_date, FMT).date()
         logging.info(f"Start date: {self.start_date}, End date: {self.end_date}")
 
         self.retirement_date = self.birth_date + timedelta(days=self.retirement_age * DAYS_IN_YEAR)
-        logging.info(f"Retirement date: {self.retirement_date} at age {self.retirement_age}")
+        logging.info(f"Retirement date: {self.retirement_date} at age {self.retirement_age:,.1f}")
 
     def setup(self, config_path=CONFIG_PATH, asset_filter=None):
         logging.info(f"Setting up retirement model with configuration from {config_path}")
-        if asset_filter is not None:
-            logging.info(f"Asset filter applied: {asset_filter}")
-            asset_filter = [x.lower() for x in asset_filter]
-
         self.assets = create_assets(config_path, asset_filter)
         logging.info(f"Assets loaded: {[asset.name for asset in self.assets]}")
         for asset in self.assets:
@@ -47,6 +45,7 @@ class RetirementFinancialModel:
                 "first_date": self.start_date,
                 "retirement": self.retirement_date,
                 "end_date": self.end_date,
+                "retirement_date": self.retirement_date,
                 "retirement_age": int(self.retirement_age)
             })
             logging.info(
@@ -59,51 +58,75 @@ class RetirementFinancialModel:
     def run_model(self):
         """Run the financial model simulation"""
         mdata = []
-        mheader = ["Period",
-                   "Date",
-                   "age",
-                   "net_worth",
-                   "monthly_income",
-                   "taxes",
+        mheader = ["Period", "Date", "age",
+                   "retirement_withdrawal",
+                   "net_worth", "debt",
+                   "monthly_taxable_income",
+                   "monthly_operational_expenses", "taxes_paid",
                    "free_cash_flows",
-                   "investment",
-                   "unallocated_cash"
+                   "investment"
                    ]
         adata = {a.name: [] for a in self.assets}
+
         for p, pdate in enumerate(self.timeline):
             age = (pdate - self.birth_date).days / DAYS_IN_YEAR
             for asset in self.assets:
-                addl = asset.period_update(p, pdate)
-                snapshot = asset.period_snapshot(p, pdate, addl={"Appreciation": addl[1], "Cash-flow": addl[2]})
-                adata[asset.name].append(snapshot)
-            # tax basis
-            monthly_income = self.calculate_monthly_income()
+                _p, _pdate, addl = asset.period_update(p, pdate)
+                snapshot = asset.period_snapshot(p, pdate, addl=addl)
+                adata[asset.name].append(snapshot) # add header below
+            ####################################################################
+            # Aggregate actions and metrics
+            ####################################################################
             # 401k withdrawals
-            withdraw_amount = 0.0
+            retirement_withdraw = 0.0
             if age >= self.retirement_age:
-                withdraw_amount = self.withdrawal_rate * self.calculate_retirement_portfolio_value() / MONTHS_IN_YEAR.
+                retirement_withdraw = max([0.0,self.withdrawal_rate * self.retirement_portfolio_value() / MONTHS_IN_YEAR])
                 # decrement asset values by withdrawal
-                self.invest_evenly(-withdraw_amount * self.stock_allocation, "stock")
-                self.invest_evenly(-withdraw_amount * self.bond_allocation, "bond")
-                monthly_income += withdraw_amount
+                self.allocate_investment_evenly(-retirement_withdraw * self.stock_allocation, "stock")
+                self.allocate_investment_evenly(-retirement_withdraw * self.bond_allocation, "bond")
+                logging.info(f"Age: {age:,.1f}, Retirement withdrawal: {retirement_withdraw:.2f}")
+
+            # net_worth and debt
+            net_worth, debt = self.net_worth_debt()
+            # tax basis
+            monthly_taxable_income = self.calculate_monthly_taxable_income() + retirement_withdraw
+            # operational expenses
+            monthly_operational_expenses = self.calculate_operating_expenses()
             # Calculate taxes on total income
-            taxes = self.calculate_monthly_taxes(withdraw_amount)
+            taxes_paid = self.calculate_monthly_taxes(retirement_withdraw)
             # Calculate free cash flows after asset-specific taxes and expenses
-            free_cash_flows = monthly_income + self.calculate_free_cash_flows() - taxes
+            free_cash_flows = monthly_taxable_income + self.calculate_free_cash_flows() - taxes_paid
+
+            # Calculate investment allocation (before retirement)
             investment = 0.0
-            if free_cash_flows > 0 and age < self.retirement_age:
-                logging.info(f"Free cash flows: {free_cash_flows}, Taxes: {taxes}, Age: {age}")
-                investment = self.savings_rate * free_cash_flows
-                self.invest_evenly(investment * self.stock_allocation, "401k stock")
-                self.invest_evenly(investment * self.bond_allocation, "401k bond")
-            unallocated_cash = monthly_income - free_cash_flows - taxes - investment
-            net_worth = self.net_worth()
-            mdata.append(
-                [p, pdate, age, net_worth, monthly_income, taxes, free_cash_flows, investment, unallocated_cash])
+            if age < self.retirement_age:
+                logging.info(f"Free cash flows: {free_cash_flows:,.2f}, Taxes: {taxes_paid:,.2f}, Age: {age:,.1f}")
+                investment = max([0.0, self.savings_rate * free_cash_flows])
+                self.allocate_investment_evenly(investment * self.stock_allocation, "401k stock")
+                self.allocate_investment_evenly(investment * self.bond_allocation, "401k bond")
+
+            # track model data
+            mdata.append([p, pdate, age,
+                   retirement_withdraw,
+                   net_worth, debt,
+                   monthly_taxable_income,
+                   monthly_operational_expenses, taxes_paid,
+                   free_cash_flows,
+                   investment
+                   ])
+
         aheader = self.assets[0].snapshot_header
+
         return mdata, mheader, adata, aheader
 
-    def calculate_retirement_portfolio_value(self, name_match="401k"):
+    def calculate_operating_expenses(self):
+        """Calculate the total monthly operational expenses"""
+        total_expenses = 0.0
+        for asset in self.assets:
+            total_expenses += asset.operating_expense()
+        return total_expenses
+
+    def retirement_portfolio_value(self, name_match="401k"):
         """Calculate the total value of the retirement portfolio"""
         total_value = 0.0
         for asset in self.assets:
@@ -111,22 +134,27 @@ class RetirementFinancialModel:
                 total_value += asset.value - asset.debt
         return total_value
 
-    def invest_evenly(self, amount, name_match):
+    def allocate_investment_evenly(self, amount, name_match):
         asset_list = []
         for asset in self.assets:
             if name_match in asset.name.lower():
                 asset_list.append(asset)
         equally_distributed_amount = amount / len(asset_list) if asset_list else 0.0
-        for asset in asset_list:
-            if equally_distributed_amount > 0:
-                asset.update_value_with_investment(equally_distributed_amount)
-                logging.info(f"Invested ${equally_distributed_amount:.2f} in {asset.name}")
+        if equally_distributed_amount != 0.0:
+            for asset in asset_list:
+                actual_investment = asset.update_value_with_investment(equally_distributed_amount)
+                if actual_investment != equally_distributed_amount:
+                    equally_distributed_amount = 2 * equally_distributed_amount - actual_investment
+                    logging.info(f"Adjusted investment amount for {asset.name} to ${equally_distributed_amount:,.2f}")
+                logging.info(f"Invested ${equally_distributed_amount:,.2f} in {asset.name}")
 
-    def net_worth(self):
+    def net_worth_debt(self):
         total_net_worth = 0.0
+        total_debt = 0.0
         for asset in self.assets:
             total_net_worth += asset.value - asset.debt
-        return total_net_worth
+            total_debt += asset.debt
+        return total_net_worth, total_debt
 
     def calculate_free_cash_flows(self):
         cash_flow = 0.0
@@ -134,11 +162,10 @@ class RetirementFinancialModel:
             cash_flow += asset.cash_flow()
         return cash_flow
 
-    def calculate_monthly_income(self):
+    def calculate_monthly_taxable_income(self):
         monthly_income = 0
         for asset in self.assets:
-            if asset.tax_class == "income":
-                monthly_income += asset.income
+            monthly_income += asset.taxable_income()
         return monthly_income
 
     def calculate_monthly_taxes(self, withdraw_amount=0.0):
@@ -169,7 +196,7 @@ class RetirementFinancialModel:
             return
 
         plt.style.use('seaborn-v0_8')
-        cols = 2
+        cols = 3
         rows = 3
         fig, axes = plt.subplots(cols, rows, figsize=(20, MONTHS_IN_YEAR))
         fig.suptitle('Retirement Financial Model - Comprehensive Analysis', fontsize=26, fontweight='bold')

@@ -1,7 +1,10 @@
 import json
 import logging
 from datetime import datetime
-from models.utils import FMT
+
+FMT = "%Y-%m-%d"
+DAYS_IN_YEAR = 365.25
+MONTHS_IN_YEAR = 12
 
 
 class Asset:
@@ -62,12 +65,12 @@ class Asset:
         clearing any previous values.
 
         """
-        self.value = 0           # Asset value at period n
-        self.debt = 0            # Asset debt at period n, impact on net value
-        self.income = 0          # Taxable income from this asset at period n, impact on cash flow
-        self.expenses = 0        # Fixed expenses for this asset at period n, impact on cash flow, not value
-        self.growth_rate = 0     # Asset appreciation rate at period n, impact on value, not cash flow
-        self.expense_rate = 0    # Asset expense rate at period n, imppact on cash flow, not value
+        self.value = 0  # Asset value at period n
+        self.debt = 0  # Asset debt at period n, impact on net value
+        self.income = 0  # Taxable income from this asset at period n, impact on cash flow
+        self.expenses = 0  # Fixed expenses for this asset at period n, impact on cash flow, not value
+        self.growth_rate = 0  # Asset appreciation rate at period n, impact on value, not cash flow
+        self.expense_rate = 0  # Asset expense rate at period n, imppact on cash flow, not value
 
     def _setup(self):
         """
@@ -91,8 +94,14 @@ class Asset:
         Parameters:
             incremental_investment (float): The amount to invest in the equity asset.
         """
-        self.value += incremental_investment
+        if self.value + incremental_investment < 0:
+            incremental_investment = -self.value
+            self.value = 0.0
+            logging.warning(f"Investment amount is negative and exceeds current value of {self.name}")
+        else:
+            self.value += incremental_investment
         logging.info(f"Invested ${incremental_investment:,.2f} into {self.name}. New value: ${self.value:,.2f}")
+        return incremental_investment  # return actual investment made
 
     def _period_update_finalize_metrics(self, period, period_date=None):
         """
@@ -130,7 +139,7 @@ class Asset:
                 - The calculated appreciation value (float or None).
                 - The cash flow value (float or None).
         """
-        derived_metrics = {k:0.0 for k in self.metrics_functions}
+        derived_metrics = {k: 0.0 for k in self.metrics_functions}
         if self.start_date is not None and self.end_date is not None:
             if period_date < self.start_date:
                 logging.info(f"Asset {self.name} not applicable for period {period} on date {period_date}")
@@ -151,8 +160,6 @@ class Asset:
                 self.initialize_asset_metrics()
         else:
             logging.error(f"Invalid period_date: {period_date} or asset dates: {self.start_date}, {self.end_date}")
-            appreciation = None
-            cash_flow = None
         return period, period_date, derived_metrics
 
     def period_snapshot(self, period, period_date=None, addl={}):
@@ -173,14 +180,10 @@ class Asset:
         """
         self.snapshot_header = ["Period", "Date", "Name", "Description", "Value",
                                 "Debt", "Income", "Expenses"]
-        res = [period,
-               period_date,
-               self.name,
-               self.description,
-               self.value,
-               self.debt,
-               self.income,
-               self.expenses]
+        res = [period, period_date,
+               self.name, self.description,
+               self.value, self.debt,
+               self.income, self.expenses]
         if len(addl) > 0:
             for key, value in addl.items():
                 res.append(value)
@@ -209,8 +212,8 @@ class Asset:
         Returns:
             The calculated operating expense as a numeric value.
         """
-        dec = self.value * self.expense_rate + self.expenses
-        return dec
+        op_exp = self.value * self.expense_rate + self.expenses
+        return op_exp
 
     def cash_flow(self):
         """
@@ -260,8 +263,14 @@ class Asset:
                     self.end_date = datetime.strptime(value, FMT).date()
                 else:
                     self.end_date = value
-            elif self.retirement_age == key:
-                self.retirement_age = value
+            elif hasattr(self, "retirement_age") and self.retirement_age == key:
+                self.retirement_age = int(value)
+            elif hasattr(self, "retirement_date") and self.retirement_date == key:
+                if isinstance(value, str):
+                    self.retirement_date = datetime.strptime(value, FMT).date()
+                else:
+                    self.retirement_date = value
+
 
     def __repr__(self):
         return (f"{self.name}: ${self.value:,.2f}, ${self.debt:,.2f}, ${self.income:,.2f}, "
@@ -290,11 +299,12 @@ class REAsset(Asset):
         """
         self.value = self.initial_value  # Initial value of the property
         self.debt = self.initial_debt  # Initial debt on the property
-        self.growth_rate = self.appreciation_rate / 12.
-        self.expense_rate = self.property_tax_rate / 12.
-        self.income_based_expenses = (self.management_fee + self.rental_expense_rate) / 12.
+        self.growth_rate = self.appreciation_rate / MONTHS_IN_YEAR
+        self.expense_rate = self.property_tax_rate / MONTHS_IN_YEAR
+        self.income_based_expenses_rate = (self.management_fee + self.rental_expense_rate) / MONTHS_IN_YEAR
         self.income = self.monthly_rental_income
-        self.expenses = self.insurance_cost / 12.  # Monthly insurance cost
+        self.expenses = self.insurance_cost / MONTHS_IN_YEAR
+        self.monthly_interest_rate = self.interest_rate / MONTHS_IN_YEAR
 
     def _period_update_finalize_metrics(self, period, period_date=None):
         """
@@ -305,11 +315,28 @@ class REAsset(Asset):
         ------
         No explicit errors are raised within this method.
         """
-        interest = self.debt * self.interest_rate / 12.
+        interest = self.debt * self.monthly_interest_rate
+        # regular payment or payoff
         self.payment = min(self.payment, self.debt + interest)
-        principle = self.payment - interest
-        self.debt -= principle
-        self.expenses = self.insurance_cost / 12. + interest + self.income_based_expenses * self.payment
+        self.principle_payment = self.payment - interest
+        self.debt -= self.principle_payment
+        self.expenses = (self.insurance_cost / MONTHS_IN_YEAR) + interest + (
+                    self.income_based_expenses_rate * self.payment)
+        logging.info(
+            f"mort_status, {self.name}, {period}, {period_date}, {self.payment}, {interest}, {self.principle_payment}, {self.debt}")
+
+    def cash_flow(self):
+        """
+        Calculates the cash flow for the real estate asset.
+
+        The cash flow is computed as the difference between the income generated
+        from the asset and the total expenses incurred, including debt payments,
+        interest, and other associated costs.
+
+        Returns:
+            float: The net cash flow calculated as income minus operating expenses.
+        """
+        return self.income - self.expenses - self.principle_payment
 
 
 class Equity(Asset):
@@ -352,10 +379,11 @@ class Equity(Asset):
             expenses (float): Accumulated expenses, initialized to zero.
             income (float): Accumulated income, initialized to zero.
         """
-        self.growth_rate = self.appreciation_rate / 12.
-        self.expense_rate = self.initial_expense_rate / 12.
-        self.dividend_rate /= 12.
+        self.growth_rate = self.appreciation_rate / MONTHS_IN_YEAR
+        self.expense_rate = self.initial_expense_rate / MONTHS_IN_YEAR
+        self.dividend_rate /= MONTHS_IN_YEAR
         self.value = self.initial_value
+        self.capital_gains = 0.0
 
     def _period_update_finalize_metrics(self, period, period_date=None):
         """
@@ -365,6 +393,34 @@ class Equity(Asset):
             AttributeError: If income_rate or value is not set or is not accessible.
         """
         self.income = self.value * self.dividend_rate  # Update income based on current value
+
+    def withdraw_income(self, amount):
+        """
+        Withdraws a specified amount from the equity income.
+
+        This method reduces the income by the specified amount, simulating a withdrawal
+        from the equity asset. It ensures that the income does not go below zero.
+
+        Parameters:
+            amount (float): The amount to withdraw from the equity income.
+        """
+        self.value -= amount  # Adjust the value of the equity asset
+        self.capital_gains = self.initial_value * self.growth_rate ** period  # Calculate capital gains based on growth rate
+        logging.info(
+            f"Withdrew ${amount:,.2f} from {self.name} value = {self.value:,.2f}, capital gains = {self.capital_gains:,.2}")
+
+    def taxable_income(self):
+        """
+        Calculates the taxable income for the equity asset.
+
+        This method computes the taxable income by considering the income generated
+        by the equity and subtracting any operating expenses. It is used to determine
+        the financial performance of the equity for tax purposes.
+
+        Returns:
+            float: The taxable income calculated as income minus operating expenses.
+        """
+        return self.income - self.expenses + self.capital_gains
 
 
 class SalaryIncome(Asset):
@@ -390,13 +446,14 @@ class SalaryIncome(Asset):
             income (float): The initial income calculated as salary divided by 4.
             value (int): The initial value, set to 0.
         """
-        self.growth_rate = self.cola / 12.  # No appreciation for employment income
+        self.growth_rate = self.cola / MONTHS_IN_YEAR  # No appreciation for employment income
         if "retirement_age_based_benefit" in self.__dict__:
             self.salary = self.retirement_age_based_benefit[str(self.retirement_age)]
+            self.income = self.salary
             logging.info(f"Using benefit for retirement age {self.retirement_age}: {self.salary}")
         else:
             logging.info(f"No age based benefit found, using salary: {self.salary}")
-            self.income = self.salary / 12.
+            self.income = self.salary / MONTHS_IN_YEAR
 
     def _period_update_finalize_metrics(self, period, period_date=None):
         """
@@ -406,49 +463,3 @@ class SalaryIncome(Asset):
             AttributeError: If `income` or `growth_rate` does not exist or cannot be modified.
         """
         self.income *= (1. + self.growth_rate)  # Adjust salary for cost of living adjustment (COLA)
-
-
-def create_assets(path="./configuration/assets", asset_filter=None):
-    """
-    Processes JSON files in a specified directory to create asset objects based on their type. Supported
-    asset types include 'RealEstate', 'Equity', and 'Salary'. Unrecognized asset types are logged and skipped.
-
-    Parameters:
-        path: str
-            The directory path containing the JSON files. Defaults to "./configuration/assets".
-
-    Returns:
-        list
-            A list of asset objects loaded from the JSON files.
-
-    Raises:
-        FileNotFoundError
-            If the specified path does not exist.
-        JSONDecodeError
-            If a JSON file is malformed or contains invalid JSON data.
-    """
-    import os
-    assets = []
-    for filename in os.listdir(path):
-        if filename.endswith('.json'):
-            fpath = os.path.join(path, filename)
-            with (open(fpath, 'r') as file):
-                asset_data = json.load(file)
-                if asset_filter and asset["name"].lower() not in asset_filter:
-                    logging.info(f"Skipping asset {asset.name} due to filter: {asset_filter}")
-                    continue
-                if asset_data['type'] == 'RealEstate':
-                    logging.debug(f"Loading {fpath} as RE")
-                    asset = REAsset(fpath)
-                elif asset_data['type'] == 'Equity':
-                    logging.debug(f"Loading {fpath} as Equity")
-                    asset = Equity(fpath)
-                elif asset_data['type'] == 'Salary':
-                    logging.debug(f"Loading {fpath} as SalaryIncome")
-                    asset = SalaryIncome(fpath)
-                else:
-                    logging.warning(f"Unknown asset type in {fpath}, skipping.")
-                    continue
-                asset.__dict__.update(asset_data)
-                assets.append(asset)
-    return assets

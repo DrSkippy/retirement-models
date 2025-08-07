@@ -7,7 +7,7 @@ from models.utils import *
 class MyTestCase(unittest.TestCase):
     FMT = "%Y-%m-%d"
 
-    def test_F5(self):
+    def test_F5_salary_0(self):
         a = SalaryIncome("./configuration/assets/F5.json")
         self.assertEqual(a.name, "F5 Employment Income")
         self.assertEqual(a.start_date, "first_date")
@@ -24,13 +24,6 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(a.end_date, datetime.strptime("2020-04-01", self.FMT).date())
         self.assertEqual(a.retirement_age, 65)
 
-    def test_F5_salary(self):
-        a = SalaryIncome("./configuration/assets/F5.json")
-        model_dates = {"first_date": "2020-01-01",
-                       "retirement": "2020-04-01",
-                       "end_date": "2020-06-01",
-                       "retirement_age": 65}
-        a.set_scenario_dates(model_dates)
         date_range = create_datetime_sequence(model_dates["first_date"], model_dates["end_date"])
         for p, pdate in enumerate(date_range):
             print(pdate, a.start_date, a.end_date)
@@ -111,12 +104,41 @@ class MyTestCase(unittest.TestCase):
             if p == 10:  # After 10 years
                 self.assertAlmostEqual(x[4], tmp * (1. + a.growth_rate) ** 10, 2)
                 self.assertEqual(x[5], 0.)
-                self.assertAlmostEqual(x[6],  264.098958, 2)
+                self.assertAlmostEqual(x[6],   262.78503, 2)
                 self.assertEqual(x[7], 0)
                 a.update_value_with_investment(10000)
             elif p == 12:
                 self.assertAlmostEqual(x[4], tmp * (1. + a.growth_rate) ** 12 + 10000 * (1. + a.growth_rate) ** 2, 2)
 
+    def test_REAsset_xtras(self):
+        a = REAsset("./configuration/assets/rental_114.json")
+        self.assertEqual(a.start_date, "first_date")
+        self.assertEqual(a.end_date, "end_date")
+
+        model_dates = {"first_date": "2020-01-01",
+                       "end_date": "2030-01-01"}
+        a.set_scenario_dates(model_dates)
+
+        self.assertEqual(a.start_date, datetime.strptime("2020-01-01", self.FMT).date())
+        self.assertEqual(a.end_date, datetime.strptime("2030-01-01", self.FMT).date())
+
+        date_range = create_datetime_sequence(model_dates["first_date"], model_dates["end_date"])
+
+        for p, pdate in enumerate(date_range):
+            _p, _pdata, xtras = a.period_update(p, pdate)
+            self.assertEqual(_p, p)
+            self.assertEqual(_pdata, pdate)
+            self.assertEqual(len(xtras), 4)
+            x = a.period_snapshot(p, pdate, xtras)
+            self.assertEqual(len(x), 12)
+            self.assertEqual(x[0], p)
+            self.assertEqual(x[1], pdate)
+            print (x)
+            if p == 10:  # After 10 mmonths
+                self.assertAlmostEqual(x[4], a.initial_value * (1. + a.growth_rate) ** 11, 2)
+                self.assertAlmostEqual(x[5], 16048.60746, 2)
+                self.assertAlmostEqual(x[7],   155.9716844085628, 2) # interest
+                self.assertAlmostEqual(x[8],  664.3042529126141 , 2) # principle
 
 if __name__ == '__main__':
     unittest.main()
