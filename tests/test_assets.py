@@ -12,20 +12,24 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(a.name, "F5 Employment Income")
         self.assertEqual(a.start_date, "first_date")
         self.assertEqual(a.end_date, "retirement")
+        self.assertEqual(a.retirement_age, "retirement_age")
 
         model_dates = {"first_date": "2020-01-01",
                        "retirement": "2020-04-01",
-                       "end_date": "2020-06-01"}
+                       "end_date": "2020-06-01",
+                       "retirement_age": 65}
 
         a.set_scenario_dates(model_dates)
         self.assertEqual(a.start_date, datetime.strptime("2020-01-01", self.FMT).date())
         self.assertEqual(a.end_date, datetime.strptime("2020-04-01", self.FMT).date())
+        self.assertEqual(a.retirement_age, 65)
 
     def test_F5_salary(self):
         a = SalaryIncome("./configuration/assets/F5.json")
         model_dates = {"first_date": "2020-01-01",
                        "retirement": "2020-04-01",
-                       "end_date": "2020-06-01"}
+                       "end_date": "2020-06-01",
+                       "retirement_age": 65}
         a.set_scenario_dates(model_dates)
         date_range = create_datetime_sequence(model_dates["first_date"], model_dates["end_date"])
         for p, pdate in enumerate(date_range):
@@ -47,13 +51,14 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(a.end_date, "end_date")
         model_dates = {"first_date": "2020-01-01",
                        "retirement": "2020-04-01",
-                       "end_date": "2030-01-01"}
+                       "end_date": "2030-01-01",
+                       "retirement_age": 65}
         a.set_scenario_dates(model_dates)
         self.assertEqual(a.start_date, datetime.strptime("2020-04-01", self.FMT).date())
         self.assertEqual(a.end_date, datetime.strptime("2030-01-01", self.FMT).date())
         a.period_update(0, datetime.strptime("2020-04-01", self.FMT).date())
-        self.assertEqual(a.age_based_benefit[a.benefit_age], a.salary / 12.)
-        self.assertEqual(a.age_based_benefit[a.benefit_age], a.income/(1. + a.growth_rate)) # 1 month of COLA
+        self.assertEqual(a.retirement_age_based_benefit[str(a.retirement_age)], a.salary)
+        self.assertEqual(a.retirement_age_based_benefit[str(a.retirement_age)], a.income/(1. + a.growth_rate)) # 1 month of COLA
 
     def test_mortgage_calculation(self):
         a = REAsset("./configuration/assets/primary_residence.json")
@@ -108,7 +113,7 @@ class MyTestCase(unittest.TestCase):
                 self.assertEqual(x[5], 0.)
                 self.assertAlmostEqual(x[6],  264.098958, 2)
                 self.assertEqual(x[7], 0)
-                a.investment(10000)
+                a.update_value_with_investment(10000)
             elif p == 12:
                 self.assertAlmostEqual(x[4], tmp * (1. + a.growth_rate) ** 12 + 10000 * (1. + a.growth_rate) ** 2, 2)
 

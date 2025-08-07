@@ -1,6 +1,11 @@
 from datetime import datetime
 from datetime import timedelta
 
+FMT = "%Y-%m-%d"
+DAYS_IN_YEAR = 365.25
+MONTHS_IN_YEAR = 12
+
+
 def create_datetime_sequence(start_date, end_date):
     """
     Create a sequence of datetime objects from start_date to end_date with a specified step in days.

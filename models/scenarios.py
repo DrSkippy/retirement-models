@@ -6,44 +6,52 @@ from models.utils import *
 
 
 class RetirementFinancialModel:
-    FMT = "%Y-%m-%d"
     CONFIG_PATH = "./configuration/assets"
+    CONFIG_FILE_PATH = "./configuration/config.json"
 
-    def __init__(self, filename=None):
-        if not filename:
+    def __init__(self, config_file_path=CONFIG_FILE_PATH):
+        if not config_file_path:
             logging.error("No configuration file provided, using default values.")
             return
         else:
-            with open(filename, "r") as rdr:
+            with open(config_file_path, "r") as rdr:
                 self.__dict__ = json.loads(rdr.read())
-            logging.info(f"Retirement model loaded from {filename}")
+            logging.info(f"Retirement model loaded from {config_file_path}")
 
         self.today_date = datetime.now().date()
         logging.info(f"Today's date: {self.today_date}")
-        self.birth_date = datetime.strptime(self.birth_date, self.FMT).date()
-        self.spouse_birth_date = datetime.strptime(self.spouse_birth_date, self.FMT).date()
-        self.current_age = (self.today_date - self.birth_date).days / 365.25
-        self.spouse_current_age = (self.today_date - self.spouse_birth_date).days / 365.25
+
+        self.birth_date = datetime.strptime(self.birth_date, FMT).date()
+        self.spouse_birth_date = datetime.strptime(self.spouse_birth_date, FMT).date()
+        self.current_age = (self.today_date - self.birth_date).days / DAYS_IN_YEAR
+        self.spouse_current_age = (self.today_date - self.spouse_birth_date).days / DAYS_IN_YEAR
         logging.info(f"Current age: {self.current_age:.2f}, Spouse's age: {self.spouse_current_age:.2f}")
 
-        self.start_date = datetime.strptime(self.start_date, self.FMT).date()
-        self.end_date = datetime.strptime(self.end_date, self.FMT).date()
+        self.start_date = datetime.strptime(self.start_date, FMT).date()
+        self.end_date = datetime.strptime(self.end_date, FMT).date()
         logging.info(f"Start date: {self.start_date}, End date: {self.end_date}")
 
-        self.retirement_date = self.birth_date + timedelta(days=self.retirement_age * 365.25)
-        logging.info(f"Retirement date: {self.retirement_date}")
+        self.retirement_date = self.birth_date + timedelta(days=self.retirement_age * DAYS_IN_YEAR)
+        logging.info(f"Retirement date: {self.retirement_date} at age {self.retirement_age}")
 
-    def setup(self, config_path=CONFIG_PATH):
+    def setup(self, config_path=CONFIG_PATH, asset_filter=None):
         logging.info(f"Setting up retirement model with configuration from {config_path}")
-        self.assets = create_assets(config_path)
+        if asset_filter is not None:
+            logging.info(f"Asset filter applied: {asset_filter}")
+            asset_filter = [x.lower() for x in asset_filter]
+
+        self.assets = create_assets(config_path, asset_filter)
         logging.info(f"Assets loaded: {[asset.name for asset in self.assets]}")
         for asset in self.assets:
             asset.set_scenario_dates({
                 "first_date": self.start_date,
                 "retirement": self.retirement_date,
-                "end_date": self.end_date
+                "end_date": self.end_date,
+                "retirement_age": int(self.retirement_age)
             })
-            logging.info(f"Asset {asset.name} scenario dates set: {asset.start_date} to {asset.end_date}")
+            logging.info(
+                f"Asset {asset.name} scenario dates set: {asset.start_date} to {asset.end_date}"
+                f"with retirement date {self.retirement_date}")
 
         self.timeline = create_datetime_sequence(self.start_date, self.end_date)
         logging.info(f"Timeline (monthly) created from {self.start_date} to {self.end_date}")
@@ -63,7 +71,7 @@ class RetirementFinancialModel:
                    ]
         adata = {a.name: [] for a in self.assets}
         for p, pdate in enumerate(self.timeline):
-            age = (pdate - self.birth_date).days / 365.25
+            age = (pdate - self.birth_date).days / DAYS_IN_YEAR
             for asset in self.assets:
                 addl = asset.period_update(p, pdate)
                 snapshot = asset.period_snapshot(p, pdate, addl={"Appreciation": addl[1], "Cash-flow": addl[2]})
@@ -73,7 +81,7 @@ class RetirementFinancialModel:
             # 401k withdrawals
             withdraw_amount = 0.0
             if age >= self.retirement_age:
-                withdraw_amount = self.withdrawal_rate * self.calculate_retirement_portfolio_value() / 12.
+                withdraw_amount = self.withdrawal_rate * self.calculate_retirement_portfolio_value() / MONTHS_IN_YEAR.
                 # decrement asset values by withdrawal
                 self.invest_evenly(-withdraw_amount * self.stock_allocation, "stock")
                 self.invest_evenly(-withdraw_amount * self.bond_allocation, "bond")
@@ -111,7 +119,7 @@ class RetirementFinancialModel:
         equally_distributed_amount = amount / len(asset_list) if asset_list else 0.0
         for asset in asset_list:
             if equally_distributed_amount > 0:
-                asset.investment(equally_distributed_amount)
+                asset.update_value_with_investment(equally_distributed_amount)
                 logging.info(f"Invested ${equally_distributed_amount:.2f} in {asset.name}")
 
     def net_worth(self):
@@ -163,7 +171,7 @@ class RetirementFinancialModel:
         plt.style.use('seaborn-v0_8')
         cols = 2
         rows = 3
-        fig, axes = plt.subplots(cols, rows, figsize=(20, 12))
+        fig, axes = plt.subplots(cols, rows, figsize=(20, MONTHS_IN_YEAR))
         fig.suptitle('Retirement Financial Model - Comprehensive Analysis', fontsize=26, fontweight='bold')
 
         header_list = df.columns.tolist()[offset:]  # Exclude 'Date' and 'Period' columns
@@ -403,7 +411,7 @@ class RetirementFinancialModel:
 # def create_visualizations(self, data):
 #    """Create comprehensive visualizations"""
 #    plt.style.use('seaborn-v0_8')
-#    fig, axes = plt.subplots(2, 3, figsize=(20, 12))
+#    fig, axes = plt.subplots(2, 3, figsize=(20, MONTHS_IN_YEAR))
 #    fig.suptitle('Retirement Financial Model - Comprehensive Analysis', fontsize=16, fontweight='bold')
 #
 #    # 1. Net Worth Over Time
