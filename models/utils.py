@@ -1,8 +1,11 @@
-from datetime import datetime
 import os
+import uuid
 from datetime import timedelta
-from models.assets import *
 
+import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
+
+from models.assets import *
 
 
 def create_datetime_sequence(start_date, end_date):
@@ -76,3 +79,52 @@ def create_assets(path="./configuration/assets", asset_name_filter=None):
                     continue
             assets.append(asset)
     return assets
+
+
+def plot_asset_model_data(df, name, offset=4):
+    """Plot asset model data"""
+    if df.empty:
+        logging.error("No data to plot.")
+        return
+
+    plt.style.use('seaborn-v0_8')
+    cols, rows = 3, 3
+    FONT_SIZE = 16
+    fig, axes = plt.subplots(cols, rows, figsize=(20, MONTHS_IN_YEAR))
+    fig.suptitle('Retirement Financial Model - Comprehensive Analysis', fontsize=26, fontweight='bold')
+
+    header_list = df.columns.tolist()[offset:]  # Exclude 'Date' and 'Period' columns
+    # plot indexes
+    with PdfPages(f'./output/scenario_{name}.pdf') as pdf:
+        for i in range(cols):
+            for j in range(rows):
+                try:
+                    column = header_list.pop()
+                    axes[i, j].plot(df['Date'], df[column], label=column)
+                    axes[i, j].set_title(f'{name} Asset Model Data Over Time', fontsize=FONT_SIZE)
+                    axes[i, j].set_xlabel('Date', fontsize=FONT_SIZE)
+                    axes[i, j].set_ylabel('Value', fontsize=FONT_SIZE)
+                    axes[i, j].legend(fontsize=FONT_SIZE)
+                    axes[i, j].grid()
+                except IndexError:
+                    break
+        pdf.savefig()  # saves the current figure into a pdf page
+        plt.close()
+
+def persist_metric(name, columns, df, output_path="./output/metrics"):
+    """
+    Save a DataFrame to a CSV file in the specified output path.
+
+    :param name: The name of the metric to be saved.
+    :param df: The DataFrame containing the metric data.
+    :param output_path: The directory where the CSV file will be saved.
+    """
+    if not os.path.exists(output_path):
+        os.makedirs(output_path)
+
+    file_path = os.path.join(output_path, f"{name}_{uuid.uuid1()}.csv")
+    columns = ["Period", "Date"] + columns  # Ensure columns is a list
+    df = df[columns]  # Filter the DataFrame to include only the specified columns
+    df.reset_index(drop=True, inplace=True)  # Reset index to ensure clean CSV output
+    df.to_csv(file_path, index=False)
+    logging.info(f"Metric {name} saved to {file_path}")

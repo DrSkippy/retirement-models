@@ -1,6 +1,7 @@
 import json
 import logging
 from datetime import datetime
+import numpy as np
 
 FMT = "%Y-%m-%d"
 DAYS_IN_YEAR = 365.25
@@ -31,7 +32,7 @@ class Asset:
         filename: str
             The path to the JSON file that contains the asset data.
         """
-        logging.debug(f"i *** Initializing asset from {filename} ***")
+        logging.debug(f" *** Initializing asset from {filename} ***")
         with open(filename, "r") as reader:
             self.__dict__.update(json.load(reader))
         self.initialize_asset_metrics()  # Ensure all financial attributes are initialized
@@ -70,6 +71,7 @@ class Asset:
         self.income = 0  # Taxable income from this asset at period n, impact on cash flow
         self.expenses = 0  # Fixed expenses for this asset at period n, impact on cash flow, not value
         self.growth_rate = 0  # Asset appreciation rate at period n, impact on value, not cash flow
+        self.growth_rate_volatility = 0  # Asset appreciation rate at period n, impact on value, not cash flow
         self.expense_rate = 0  # Asset expense rate at period n, imppact on cash flow, not value
 
     def _setup(self):
@@ -200,8 +202,13 @@ class Asset:
         Returns:
             float: The amount of appreciation added to the asset's value.
         """
-        inc = self.value * self.growth_rate
+        if hasattr(self, "growth_rate_volatiliy") and self.growth_rate_volatility == 0.0:
+            rate = self.growth_rate
+        else:
+            rate = np.random.normal(self.growth_rate, self.growth_rate_volatility)
+        inc = self.value * rate
         self.value += inc
+        logging.info(f"Appreciation for {self.name} at rate {rate:.4f} is ${inc:,.2f}, new value is ${self.value:,.2f}")
         return inc
 
     def operating_expense(self):
@@ -380,6 +387,7 @@ class Equity(Asset):
             income (float): Accumulated income, initialized to zero.
         """
         self.growth_rate = self.appreciation_rate / MONTHS_IN_YEAR
+        self.growth_rate_volatility = self.appreciation_rate_volatility
         self.expense_rate = self.initial_expense_rate / MONTHS_IN_YEAR
         self.dividend_rate /= MONTHS_IN_YEAR
         self.value = self.initial_value
