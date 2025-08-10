@@ -2,7 +2,7 @@
   "name": "F5 Employment Income",
   "description": "F5 Salary and Bonuses, including COLA adjustments. Continues to retirement age.",
   "type": "Salary",
-  "salary": 300000,
+  "salary": 301668.38,
   "cola": 0.015,
   "initial_debt": 0,
   "start_date": "first_date",
