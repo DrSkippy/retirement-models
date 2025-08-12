@@ -1,6 +1,9 @@
 import json
 import logging
+import csv
+
 from datetime import datetime
+
 import numpy as np
 
 FMT = "%Y-%m-%d"
@@ -278,7 +281,6 @@ class Asset:
                 else:
                     self.retirement_date = value
 
-
     def __repr__(self):
         return (f"{self.name}: ${self.value:,.2f}, ${self.debt:,.2f}, ${self.income:,.2f}, "
                 f"${self.expenses:,.2f} ,{self.growth_rate:,.2f}, {self.expense_rate:,.2f}, ")
@@ -328,7 +330,7 @@ class REAsset(Asset):
         self.principle_payment = self.payment - interest
         self.debt -= self.principle_payment
         self.expenses = (self.insurance_cost / MONTHS_IN_YEAR) + interest + (
-                    self.income_based_expenses_rate * self.payment)
+                self.income_based_expenses_rate * self.payment)
         logging.info(
             f"mort_status, {self.name}, {period}, {period_date}, {self.payment}, {interest}, {self.principle_payment}, {self.debt}")
 
@@ -386,8 +388,23 @@ class Equity(Asset):
             expenses (float): Accumulated expenses, initialized to zero.
             income (float): Accumulated income, initialized to zero.
         """
+        self.sampled_flag = False
         self.growth_rate = self.appreciation_rate / MONTHS_IN_YEAR
         self.growth_rate_volatility = self.appreciation_rate_volatility
+        if "sampled_monthly_sp500_returns" in self.__dict__ and self.sampled_monthly_sp500_returns is not None:
+            with open(self.sampled_monthly_sp500_returns, "r") as f:
+                self.sampled_growth_rate = []
+                rdr = csv.reader(f)
+                for row in rdr:
+                    try:
+                        self.sampled_growth_rate.append(float(row[0]))
+                    except ValueError as e:
+                        logging.error(f"Error parsing sampled monthly returns: {e}")
+                        continue
+            if len(self.sampled_growth_rate) > 0:
+                # valid sampled growth rate structure
+                self.sampled_flag = True
+                self.growth_rate_volatility = 0.0
         self.expense_rate = self.initial_expense_rate / MONTHS_IN_YEAR
         self.dividend_rate /= MONTHS_IN_YEAR
         self.value = self.initial_value
@@ -401,6 +418,9 @@ class Equity(Asset):
             AttributeError: If income_rate or value is not set or is not accessible.
         """
         self.income = self.value * self.dividend_rate  # Update income based on current value
+        if self.sampled_flag:
+            self.growth_rate = self.sampled_growth_rate[np.random.randint(0, len(self.sampled_growth_rate))]
+            self.growth_rate_volatility = 0.0
 
     def withdraw_income(self, amount):
         """

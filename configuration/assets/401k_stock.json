@@ -9,5 +9,6 @@
   "tax_class": "income",
   "appreciation_rate": 0.06,
   "appreciation_rate_volatility": 0.02,
+  "sampled_monthly_sp500_returns": "../SP500_Historical_Portfolio_Returns/out_data/monthly_returns.csv",
   "dividend_rate": 0.002
 }
