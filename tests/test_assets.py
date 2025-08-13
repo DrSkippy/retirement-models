@@ -1,15 +1,20 @@
 import unittest
-
+from datetime import date, timedelta, datetime
 from models.assets import *
 from models.utils import *
 
+"""
+For example:
+poetry run pytest --cov=models tests
+"""
 
 class MyTestCase(unittest.TestCase):
     FMT = "%Y-%m-%d"
 
-    def test_F5_salary_0(self):
-        a = SalaryIncome("./configuration/assets/F5.json")
-        self.assertEqual(a.name, "F5 Employment Income")
+    def test_salary_0(self):
+        a = SalaryIncome("./tests/test_config/assets/salary.json")
+        self.assertEqual(a.name, "Income")
+        self.assertEqual(a.description, "Some income continues to retirement age")
         self.assertEqual(a.start_date, "first_date")
         self.assertEqual(a.end_date, "retirement")
         self.assertEqual(a.retirement_age, "retirement_age")
@@ -24,23 +29,93 @@ class MyTestCase(unittest.TestCase):
         self.assertEqual(a.end_date, datetime.strptime("2020-04-01", self.FMT).date())
         self.assertEqual(a.retirement_age, 65)
 
+    def test_salary_1(self):
+        a = SalaryIncome("./tests/test_config/assets/salary.json")
+        model_dates = {"first_date": "2020-01-01",
+                       "retirement": "2020-04-01",
+                       "end_date": "2020-06-01",
+                       "retirement_age": 65}
+        a.set_scenario_dates(model_dates)
         date_range = create_datetime_sequence(model_dates["first_date"], model_dates["end_date"])
-        for p, pdate in enumerate(date_range):
-            print(pdate, a.start_date, a.end_date)
-            a.period_update(p, pdate)
-            a.growth_rate = 0.0
-            x = a.period_snapshot(p, pdate)
-            self.assertEqual(x[0], p)
-            self.assertEqual(x[1], pdate)
-            if p > 2:  # After retirement
-                self.assertEqual(x[6], 0.)
-            if p == 1:  # Before retirement
-                self.assertEqual(x[6], 25031.25) # 1 month of COLA
+        p, pdate = 0, date_range[0]
+        d, e, f = a.period_update(p, pdate)
+        self.assertEqual(d, p)
+        self.assertEqual(e, pdate)
+        self.assertEqual(len(f), 4)
+        x = a.period_snapshot(p, pdate)
+        # ["Period", "Date",
+        # "Name", "Description",
+        # "Value", "Debt",
+        # "Income", "Expenses"]
+        self.assertEqual(len(x), 8)
+        self.assertEqual(x[0], p)
+        self.assertEqual(x[1], pdate)
+        self.assertEqual(x[2], a.name)
+        self.assertEqual(x[3], a.description)
+        self.assertEqual(x[4], a.value)
+        self.assertEqual(x[5], 0.)  # Debt
+        self.assertEqual(x[6], a.income)  # Income
+        self.assertEqual(x[7], 0.)  # Expenses
 
-    def test_socsec_income(self):
-        a = SalaryIncome("./configuration/assets/SocSec.json")
+    def test_salary_2(self):
+        a = SalaryIncome("./tests/test_config/assets/salary.json")
+        model_dates = {"first_date": "2020-01-01",
+                       "retirement": "2020-04-01",
+                       "end_date": "2020-06-01",
+                       "retirement_age": 65}
+        a.set_scenario_dates(model_dates)
+        date_range = create_datetime_sequence(model_dates["first_date"], model_dates["end_date"])
+        for p in range(3):
+            pdate = date_range[p]
+            d, e, f = a.period_update(p, pdate)
+            x = a.period_snapshot(p, pdate)
+        # ["Period", "Date",
+        # "Name", "Description",
+        # "Value", "Debt",
+        # "Income", "Expenses"]
+        self.assertEqual(len(x), 8)
+        self.assertEqual(x[0], 2)
+        self.assertEqual(x[1], pdate)
+        self.assertEqual(x[1], date_range[2])
+        self.assertEqual(x[2], a.name)
+        self.assertEqual(x[3], a.description)
+        self.assertEqual(x[4], a.value)
+        self.assertEqual(x[4], 0)
+        self.assertEqual(x[5], 0.)  # Debt
+        self.assertEqual(x[6], a.income)
+        self.assertAlmostEqual( x[6], 10000*((1 + a.growth_rate) ** 3)/12., 3)
+        self.assertEqual(x[7], a.expenses)
+        self.assertEqual(x[7], 0.)
+
+    def test_salary_3(self):
+        a = SalaryIncome("./tests/test_config/assets/salary.json")
+        model_dates = {"first_date": "2020-01-01",
+                       "retirement": "2020-04-01",
+                       "end_date": "2020-06-01",
+                       "retirement_age": 65}
+        a.set_scenario_dates(model_dates)
+        date_range = create_datetime_sequence(model_dates["first_date"], model_dates["end_date"])
+        for p in range(5):
+            pdate = date_range[p]
+            d, e, f = a.period_update(p, pdate)
+            x = a.period_snapshot(p, pdate)
+        # ["Period", "Date",
+        # "Name", "Description",
+        # "Value", "Debt",
+        # "Income", "Expenses"]
+        self.assertGreater(pdate, datetime.strptime(model_dates["retirement"], self.FMT).date())
+        self.assertEqual(len(x), 8)
+        self.assertEqual(x[0], 4)
+        self.assertEqual(x[1], pdate)
+        self.assertEqual(x[1], date_range[4])
+        self.assertEqual(x[6], a.income)
+        self.assertEqual(x[6], 0.)
+
+    def test_socsec_income_0(self):
+        a = SalaryIncome("./tests/test_config/assets/sssalary.json")
         self.assertEqual(a.name, "Social Security Income")
         self.assertEqual(a.start_date, "retirement")
+        self.assertEqual(a.retirement_age, "retirement_age")
         self.assertEqual(a.end_date, "end_date")
         model_dates = {"first_date": "2020-01-01",
                        "retirement": "2020-04-01",
@@ -49,18 +124,21 @@ class MyTestCase(unittest.TestCase):
         a.set_scenario_dates(model_dates)
         self.assertEqual(a.start_date, datetime.strptime("2020-04-01", self.FMT).date())
         self.assertEqual(a.end_date, datetime.strptime("2030-01-01", self.FMT).date())
+        self.assertEqual(a.retirement_age, 65)
+
         a.period_update(0, datetime.strptime("2020-04-01", self.FMT).date())
         self.assertEqual(a.retirement_age_based_benefit[str(a.retirement_age)], a.salary)
+        self.assertEqual(a.salary, 3520.0)  # Monthly benefit
         self.assertEqual(a.retirement_age_based_benefit[str(a.retirement_age)], a.income/(1. + a.growth_rate)) # 1 month of COLA
 
     def test_mortgage_calculation(self):
-        a = REAsset("./configuration/assets/primary_residence.json")
-        self.assertEqual(a.name, "Primary Residence")
+        a = REAsset("./tests/test_config/assets/realestate.json")
+        self.assertEqual(a.name, "Real Estate")
+        self.assertEqual(a.type, "RealEstate")
         self.assertEqual(a.start_date, "first_date")
-
+        self.assertEqual(a.end_date, "end_date")
         model_dates = {"first_date": "2020-01-01",
                        "end_date": "2034-01-01"}
-
         a.set_scenario_dates(model_dates)
         self.assertEqual(a.start_date, datetime.strptime("2020-01-01", self.FMT).date())
         date_range = create_datetime_sequence(model_dates["first_date"], model_dates["end_date"])

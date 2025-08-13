@@ -1,0 +1,17 @@
+{
+  "birth_date": "1970-01-01",
+  "spouse_birth_date": "1980-01-01",
+  "retirement_age": 65,
+  "savings_rate": 0.1,
+  "inflation_rate": 0.01,
+  "tax_classes": {
+    "income": 0.30,
+    "capital_gain": 0.20,
+    "social_security": 0.10
+  },
+  "withdrawal_rate": 0.04,
+  "stock_allocation": 0.6,
+  "bond_allocation": 0.4,
+  "start_date": "2025-01-01",
+  "end_date": "2055-01-01"
+}

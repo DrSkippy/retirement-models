@@ -1,0 +1,18 @@
+{
+  "name": "Real Estate",
+  "description": "Some real estate with a mortgage",
+  "type": "RealEstate",
+  "initial_value": 10000,
+  "initial_debt": 5000,
+  "appreciation_rate": 0.01,
+  "property_tax_rate": 0.01,
+  "insurance_cost": 100,
+  "management_fee": 10,
+  "monthly_rental_income": 1000,
+  "rental_expense_rate": 0.01,
+  "interest_rate": 0.01,
+  "payment": 100,
+  "start_date": "first_date",
+  "end_date": "end_date",
+  "tax_class": "income"
+}

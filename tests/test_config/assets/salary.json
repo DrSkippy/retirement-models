@@ -1,0 +1,12 @@
+{
+  "name": "Income",
+  "description": "Some income continues to retirement age",
+  "type": "Salary",
+  "salary": 10000,
+  "cola": 0.01,
+  "initial_debt": 0,
+  "start_date": "first_date",
+  "end_date": "retirement",
+  "retirement_age": "retirement_age",
+  "tax_class": "income"
+}

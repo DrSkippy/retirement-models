@@ -1,0 +1,13 @@
+{
+  "name": "Test Equity",
+  "description": "Some sort of equity",
+  "type": "Equity",
+  "initial_value": 10000,
+  "initial_expense_rate": 0.01,
+  "start_date": "first_date",
+  "end_date": "end_date",
+  "tax_class": "income",
+  "appreciation_rate": 0.01,
+  "appreciation_rate_volatility": 0.01,
+  "dividend_rate": 0.01
+}
