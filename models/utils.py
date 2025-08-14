@@ -62,9 +62,11 @@ def create_assets(path="./configuration/assets", asset_name_filter=None):
             fpath = os.path.join(path, filename)
             with (open(fpath, 'r') as file):
                 asset_data = json.load(file)
-                if asset_name_filter and asset_data["name"].lower() not in asset_name_filter:
-                    logging.info(f"Skipping asset {asset_data['name']} due to filter: {asset_name_filter}")
-                    continue
+                if asset_name_filter:
+                    matches = [x.lower() in asset_data["name"].lower() for x in asset_name_filter]
+                    if not any(matches):
+                        logging.info(f"Skipping asset {asset_data['name']} due to filter: {asset_name_filter}")
+                        continue
                 if asset_data['type'] == 'RealEstate':
                     logging.debug(f"Loading {fpath} as RE")
                     asset = REAsset(fpath)
