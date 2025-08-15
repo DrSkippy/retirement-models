@@ -283,7 +283,7 @@ class Asset:
 
     def __repr__(self):
         return (f"{self.name}: ${self.value:,.2f}, ${self.debt:,.2f}, ${self.income:,.2f}, "
-                f"${self.expenses:,.2f} ,{self.growth_rate:,.2f}, {self.expense_rate:,.2f}, ")
+                f"${self.expenses:,.2f} ,{self.growth_rate:,.2f}, {self.expense_rate:,.2f}")
 
 
 class REAsset(Asset):
@@ -310,9 +310,8 @@ class REAsset(Asset):
         self.debt = self.initial_debt  # Initial debt on the property
         self.growth_rate = self.appreciation_rate / MONTHS_IN_YEAR
         self.expense_rate = self.property_tax_rate / MONTHS_IN_YEAR
-        self.income_based_expenses_rate = (self.management_fee + self.rental_expense_rate) / MONTHS_IN_YEAR
+        self.income_based_expenses_rate = self.management_fee_rate + self.rental_expense_rate
         self.income = self.monthly_rental_income
-        self.expenses = self.insurance_cost / MONTHS_IN_YEAR
         self.monthly_interest_rate = self.interest_rate / MONTHS_IN_YEAR
 
     def _period_update_finalize_metrics(self, period, period_date=None):
@@ -329,23 +328,13 @@ class REAsset(Asset):
         self.payment = min(self.payment, self.debt + interest)
         self.principle_payment = self.payment - interest
         self.debt -= self.principle_payment
-        self.expenses = (self.insurance_cost / MONTHS_IN_YEAR) + interest + (
-                self.income_based_expenses_rate * self.payment)
+        # expenses include insurance, interest, income-based expenses, and payment, operating expenses calculated separately
+        self.expenses = self.insurance_cost / MONTHS_IN_YEAR
+        self.expenses += self.income_based_expenses_rate * self.income
+        self.expenses += self.payment
+
         logging.info(
             f"mort_status, {self.name}, {period}, {period_date}, {self.payment}, {interest}, {self.principle_payment}, {self.debt}")
-
-    def cash_flow(self):
-        """
-        Calculates the cash flow for the real estate asset.
-
-        The cash flow is computed as the difference between the income generated
-        from the asset and the total expenses incurred, including debt payments,
-        interest, and other associated costs.
-
-        Returns:
-            float: The net cash flow calculated as income minus operating expenses.
-        """
-        return self.income - self.expenses - self.principle_payment
 
 
 class Equity(Asset):

@@ -1,5 +1,5 @@
 import unittest
-
+import pandas as pd
 from models.utils import *
 
 
@@ -14,7 +14,8 @@ class MyTestCase(unittest.TestCase):
     def test_utils_create_assets_0(self):
         assets = create_assets("./tests/test_config/assets", asset_name_filter=["Income"])
         self.assertEqual(len(assets), 2)
-        self.assertEqual(assets[0].name, "Social Security Income")
+        self.assertEqual(assets[0].name, "Income")
+        self.assertEqual(assets[1].name, "Social Security Income")
         self.assertIsInstance(assets[0], SalaryIncome)
 
     def test_utils_create_assets_1(self):
@@ -33,7 +34,6 @@ class MyTestCase(unittest.TestCase):
         # Test with an empty filter
         assets = create_assets("./tests/test_config/assets", asset_name_filter=[])
         self.assertEqual(len(assets), 4)
-
 
 if __name__ == '__main__':
     unittest.main()
