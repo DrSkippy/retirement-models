@@ -4,15 +4,8 @@ from datetime import timedelta
 import numpy as np
 import pandas as pd
 
-# Get input parameters
-current_balance = 303318.79
-monthly_payment = 1405.25
-annual_rate = .02875
-target_date = pd.to_datetime("2035-09-01")
+# Default values
 current_date = pd.to_datetime("2025-09-01")
-
-# Calculate monthly interest rate
-monthly_rate = annual_rate / 12
 
 
 # Function to calculate extra principal needed with lump sum option
@@ -104,13 +97,25 @@ def create_amortization_schedule(current_balance, total_payment, monthly_rate, c
 
 if "__main__" == __name__:
     parser = argparse.ArgumentParser(description="Mortgage Adjustment Calculator")
+    parser.add_argument("--current_balance", type=float, default=303318.79,
+                        help="Current mortgage balance (default: 303318.79)")
+    parser.add_argument("--monthly_payment", type=float, default=1405.25,
+                        help="Current monthly payment (default: 1405.25)")
+    parser.add_argument("--annual_rate", type=float, default=0.02875,
+                        help="Annual interest rate as decimal (default: 0.02875)")
     parser.add_argument("--lump_sum", type=float, default=0, help="Lump sum payment (default: 0)")
     parser.add_argument("--target_date", type=str, default="2035-09-01",
                         help="Target payoff date (default: 2035-09-01)")
     args = parser.parse_args()
 
+    current_balance = args.current_balance
+    monthly_payment = args.monthly_payment
+    annual_rate = args.annual_rate
     lump_sum = args.lump_sum
     target_date = pd.to_datetime(args.target_date)
+
+    # Calculate monthly interest rate
+    monthly_rate = annual_rate / 12
 
     # Calculate months between current date and target date
     months_to_payoff = (target_date.year - current_date.year) * 12 + (target_date.month - current_date.month)
