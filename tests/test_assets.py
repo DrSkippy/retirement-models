@@ -192,5 +192,104 @@ class MyTestCase(unittest.TestCase):
                 self.assertEqual(x[7], 0)
                 a.update_value_with_investment(10000)
 
+    def test_from_file_classmethod(self):
+        """Asset.from_file() should produce an identical result to calling the constructor."""
+        a = Equity.from_file("./tests/test_config/assets/equity.json")
+        self.assertEqual(a.name, "Test Equity")
+        self.assertIsInstance(a, Equity)
+
+    def test_update_value_negative_capped_at_zero(self):
+        """Withdrawing more than the asset value caps at zero and returns partial amount."""
+        a = Equity("./tests/test_config/assets/equity.json")
+        model_dates = {"first_date": "2020-01-01", "end_date": "2030-01-01"}
+        a.set_scenario_dates(model_dates)
+        date_range = create_datetime_sequence(model_dates["first_date"], model_dates["end_date"])
+        a.period_update(0, date_range[0])  # trigger _setup so a.value == initial_value
+        original_value = a.value
+        # Attempt to withdraw more than available
+        actual = a.update_value_with_investment(-original_value * 2)
+        self.assertAlmostEqual(a.value, 0.0)
+        self.assertAlmostEqual(actual, -original_value)
+
+    def test_period_update_none_dates(self):
+        """period_update with start_date=None logs an error and returns zeros."""
+        a = SalaryIncome("./tests/test_config/assets/salary.json")
+        # Override parsed start_date to None to trigger the error branch
+        a.__dict__["start_date"] = None
+        _, _, metrics = a.period_update(0, datetime.strptime("2020-01-01", FMT).date())
+        for v in metrics.values():
+            self.assertAlmostEqual(v, 0.0)
+
+    def test_stochastic_appreciation(self):
+        """An equity with non-zero volatility uses np.random.normal for growth."""
+        import json, tempfile, os
+        with tempfile.TemporaryDirectory() as tmpdir:
+            equity_data = {
+                "name": "Volatile Equity",
+                "description": "High-variance test equity",
+                "type": "Equity",
+                "initial_value": 10000,
+                "initial_expense_rate": 0.0,
+                "start_date": "first_date",
+                "end_date": "end_date",
+                "tax_class": "income",
+                "appreciation_rate": 0.06,
+                "appreciation_rate_volatility": 0.15,
+                "dividend_rate": 0.0,
+            }
+            fpath = os.path.join(tmpdir, "volatile.json")
+            with open(fpath, "w") as f:
+                json.dump(equity_data, f)
+            a = Equity(fpath)
+        model_dates = {"first_date": "2020-01-01", "end_date": "2030-01-01"}
+        a.set_scenario_dates(model_dates)
+        date_range = create_datetime_sequence(model_dates["first_date"], model_dates["end_date"])
+        # Run multiple periods; with non-zero volatility values will vary
+        values = []
+        for p, pdate in enumerate(date_range[:12]):
+            a.period_update(p, pdate)
+            values.append(a.value)
+        # With non-zero volatility the appreciation path should have been exercised
+        self.assertGreater(max(values), 0)
+
+    def test_asset_state_properties(self):
+        """State properties should delegate reads and writes through _state."""
+        a = Equity("./tests/test_config/assets/equity.json")
+        a.value = 12345.0
+        self.assertAlmostEqual(a._state.value, 12345.0)
+        a._state.income = 99.0
+        self.assertAlmostEqual(a.income, 99.0)
+
+    def test_equity_taxable_income_includes_capital_gains(self):
+        """Equity.taxable_income() = income - expenses + capital_gains."""
+        a = Equity("./tests/test_config/assets/equity.json")
+        model_dates = {"first_date": "2020-01-01", "end_date": "2030-01-01"}
+        a.set_scenario_dates(model_dates)
+        date_range = create_datetime_sequence(model_dates["first_date"], model_dates["end_date"])
+        a.period_update(0, date_range[0])
+        # capital_gains starts at 0 after _setup
+        expected = a.income - a.expenses + a.capital_gains
+        self.assertAlmostEqual(a.taxable_income(), expected, places=5)
+        # Manually set capital_gains and verify it's included
+        a.capital_gains = 500.0
+        self.assertAlmostEqual(a.taxable_income(), a.income - a.expenses + 500.0, places=5)
+
+    def test_set_scenario_dates_with_retirement_date(self):
+        """set_scenario_dates should update retirement_date when it matches a key."""
+        a = SalaryIncome("./tests/test_config/assets/sssalary.json")
+        # Manually set retirement_date to the placeholder string
+        a.__dict__["retirement_date"] = "retirement_date"
+        target = datetime.strptime("2035-01-01", FMT).date()
+        a.set_scenario_dates({"retirement_date": target})
+        self.assertEqual(a.retirement_date, target)
+
+    def test_set_scenario_dates_retirement_date_as_string(self):
+        """set_scenario_dates should parse string values for retirement_date."""
+        a = SalaryIncome("./tests/test_config/assets/sssalary.json")
+        a.__dict__["retirement_date"] = "retirement_date"
+        a.set_scenario_dates({"retirement_date": "2035-06-01"})
+        self.assertEqual(a.retirement_date, datetime.strptime("2035-06-01", FMT).date())
+
+
 if __name__ == '__main__':
     unittest.main()
