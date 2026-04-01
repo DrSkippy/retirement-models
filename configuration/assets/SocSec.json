@@ -1,20 +1,11 @@
-{
-  "name": "Social Security Income",
-  "description": "Social Security including COLA adjustments. Continues to retirement age.",
-  "type": "Salary",
-  "retirement_age_based_benefit": {
-    "61": 0.0,
-    "62": 2831.0,
-    "63": 3060.0,
-    "64": 3290.0,
-    "65": 3520.0,
-    "66": 3760.0,
-    "67": 4018.0,
-    "70": 5108.0
-  },
-  "retirement_age": "retirement_age",
-  "cola": 0.015,
-  "start_date": "retirement",
-  "end_date": "end_date",
-  "tax_class": "social_security"
-}
+U2FsdGVkX18v9TGkZ1qTSAmBNpCiI2vW/E1fhG6180CqJ7muFvCGlEf+OBxQpeGo
+7JbrJPxukSkYnq8okkVQCKqIUavPz2Om7DXmeN/7qyAkKc1MppqIhdzBScNXdHVV
+CG80ScwdvnxcP+VIJIzI3LRnixcqsoRIAp//W0nUmumK/PpatUPdKl84ZKOErqbU
+vhWwhXdKmnP2mtgaMMGwL30rIU2ZKYxaSPcSUZsRPZerzYe5IYYUGSqhVL3PW3oc
+iB2tGNlIy2KLeRALAaTixSYMU6cQcD0cDvos87t8tTh5mgVAByKQi7z2jgDNG/hY
+skbBXqZCgOxE99ZejyTf3CHARdU0FuPAeK9sOQmJKgiEf8KXVfdKedVZIZ/npurT
+XAzH8hHd5+FhbUBf2lN08sloZfdEmVNm2dbnxGBAD/sNbFyshk9zDElv7X+QL16K
+PfQ0tEl8oIrV+YfwVCJcOHHzFkjjDWzgGmeyNYbD3X0li4YStNzNPVi93/xYjn0X
+OjWv3eo5U9UEhkMf6O4OEFj9V+zE3txfieVYCMMc69LavVn9sctLTuBPrwfKwoM+
+4ZYYWsw2Fgl8YF3TK/LicLnm5v0UWtnur8c6bUmEykShd9fB1hFQkXaRgN2gKZn9
+J6SkqSbyE/1X4+I4c/varQ==

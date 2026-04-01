@@ -1,14 +1,10 @@
-{
-  "name": "Stocks",
-  "description": "Non retirement Stocks and indexes in aggregate",
-  "type": "Equity",
-  "initial_value": 271295,
-  "initial_expense_rate": 0.0005,
-  "appreciation_rate": 0.06,
-  "appreciation_rate_volatility": 0.02,
-  "sampled_monthly_sp500_returns": "../sp500-historical-portfolio-returns/out_data/monthly_returns.csv",
-  "dividend_rate": 0.002,
-  "start_date": "first_date",
-  "end_date": "end_date",
-  "tax_class": "capital_gain"
-}
+U2FsdGVkX198NcoEQ4KuuLxFAl39v+dpR50Q9YIpnvgZo0ypUG0cqNTXop0Bmw5c
+TbC9K7zsINlOXKJdSHya1+sTH9qD7ttAPKap0NI5enXRClFNFJ5hTAJWCVDM6esl
+rIYMhZIh1yKZzr5VJJ8NhEejESNF1XacawxBcbpOf05ucpprbqrq8bTG90AM0YIz
+L9G+zFNG5vGX4ku+HJVe9Gx5ohwkgi/VwbWmVR/mdtJheSb1mV8VmkzcaAOTdxD5
+y2HzeUJYJAlJOxk/1RZbJEbv3X9GBjGzHYXoQ31Ly4Sh8yqKEjcPRpHIs5OR84U5
+wIZyDM1OdYIt9BIUL5wyqyJs+C3XcycbF29ltjL6W9eyX3Bi4hEIrff4YxV1WmiH
+Cb0VHuHZd0VNF2HYpibDEKSSIuVp21ZA/Ytq9lrGZsApMIQH9nhadwisF5Sl549L
+7uL6/Lw+br+xj1QaESAf+X3lMqLprlSQVteGNYFjdmwlJyY2GI1MoxYkq/X6Lku0
+QkkUHTRxd7z5CYRrpiZ5igOL4zjp6KIUDZ9tnSq9VxCTZ8Zf8TwmpJ7uFI+HFqTW
+vBc1d4H6kDIfbajsze7Ncvh0BHuiEagp10eQnlUojnoHEmtd3/IyqGI6p50t1u5d
