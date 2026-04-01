@@ -27,7 +27,7 @@ export default function McListPage() {
                   #{s.id}{s.label ? ` — ${s.label}` : ""}
                 </span>
                 <span className="ml-3 text-sm text-gray-500">{s.n_runs} runs</span>
-                {s.tags.length > 0 && s.tags.map((t) => (
+                {(s.tags ?? []).length > 0 && (s.tags ?? []).map((t) => (
                   <span key={t} className="ml-1 bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded">{t}</span>
                 ))}
               </div>

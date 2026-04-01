@@ -4,7 +4,6 @@ interface Props {
 
 export default function RuinProbabilityGauge({ probability }: Props) {
   const pct = probability * 100;
-  const color = pct < 5 ? "#2E7D32" : pct < 20 ? "#F9A825" : "#C62828";
   const survive = (1 - probability) * 100;
 
   return (

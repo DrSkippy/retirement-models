@@ -22,8 +22,8 @@ function pivot(rows: AssetMetricRow[]): { period_date: string; [asset: string]: 
     const entry = byPeriod.get(row.period_date)!;
     entry[row.asset_name] = (Number(entry[row.asset_name] ?? 0) + row.value);
   }
-  return Array.from(byPeriod.values()).sort((a, b) =>
-    String(a.period_date).localeCompare(String(b.period_date))
+  return (Array.from(byPeriod.values()) as { period_date: string; [asset: string]: number | string }[]).sort((a, b) =>
+    a.period_date.localeCompare(b.period_date)
   );
 }
 

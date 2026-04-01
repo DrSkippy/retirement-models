@@ -19,9 +19,9 @@ const columns = [
   col.accessor("tags", {
     header: "Tags",
     cell: (i) =>
-      i.getValue().length > 0 ? (
+      (i.getValue() ?? []).length > 0 ? (
         <span className="flex flex-wrap gap-1">
-          {i.getValue().map((t) => (
+          {(i.getValue() ?? []).map((t) => (
             <span key={t} className="bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded">
               {t}
             </span>
@@ -34,7 +34,7 @@ const columns = [
   }),
   col.accessor("run_started_at", {
     header: "Started",
-    cell: (i) => i.getValue().slice(0, 16).replace("T", " "),
+    cell: (i) => i.getValue()?.slice(0, 16).replace("T", " ") ?? "—",
   }),
   col.accessor("terminal_net_worth", {
     header: "Terminal NW",

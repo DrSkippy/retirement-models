@@ -1,6 +1,5 @@
 import {
   Area,
-  AreaChart,
   Line,
   ComposedChart,
   ReferenceLine,

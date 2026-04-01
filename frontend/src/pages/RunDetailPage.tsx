@@ -31,7 +31,7 @@ export default function RunDetailPage() {
             Run #{run.id}{run.label ? ` — ${run.label}` : ""}
           </h2>
           <p className="text-sm text-gray-500">{run.run_started_at?.slice(0, 16).replace("T", " ")}</p>
-          {run.tags.length > 0 && (
+          {(run.tags ?? []).length > 0 && (
             <div className="flex gap-1 mt-1">
               {run.tags.map((t) => (
                 <span key={t} className="bg-blue-100 text-blue-800 text-xs px-1.5 py-0.5 rounded">{t}</span>

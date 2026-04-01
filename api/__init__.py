@@ -5,6 +5,7 @@ from decimal import Decimal
 from datetime import date, datetime
 
 from flask import Flask, Response, jsonify
+from flask_cors import CORS
 
 from api.blueprints.assets import assets_bp
 from api.blueprints.config_bp import config_bp
@@ -31,6 +32,7 @@ def create_app() -> Flask:
         Configured Flask app instance.
     """
     app = Flask(__name__)
+    CORS(app)
     app.json_provider_class = _DecimalDateEncoder
     app.json = _DecimalDateEncoder(app)
 

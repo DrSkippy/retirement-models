@@ -21,7 +21,8 @@ dependencies = [
     "psycopg2-binary (>=2.9.11,<3.0.0)",
     "flask (>=3.0)",
     "gunicorn (>=25.3.0,<26.0.0)",
-    "pydantic-settings (>=2.0)"
+    "pydantic-settings (>=2.0)",
+    "flask-cors (>=6.0.2) ; python_version >= \"3.11\" and python_version < \"4.0\""
 ]
 
 
