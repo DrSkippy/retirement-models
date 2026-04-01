@@ -1,7 +1,9 @@
 import { useParams } from "react-router-dom";
-import { useRun, useRunTax } from "../api/runs";
+import { useRun, useRunAssets, useRunTax } from "../api/runs";
 import FreeCashFlowChart from "../components/charts/FreeCashFlowChart";
+import IncomeStackChart from "../components/charts/IncomeStackChart";
 import NetWorthChart from "../components/charts/NetWorthChart";
+import PortfolioChart from "../components/charts/PortfolioChart";
 import TaxAnalysisChart from "../components/charts/TaxAnalysisChart";
 import { findRetirementDate, findRmdDate } from "../utils/chartHelpers";
 import { formatDollar } from "../utils/formatters";
@@ -11,6 +13,7 @@ export default function RunDetailPage() {
   const runId = Number(id);
   const { data, isLoading, error } = useRun(runId);
   const { data: taxRows } = useRunTax(runId);
+  const { data: assetRows } = useRunAssets(runId);
 
   if (isLoading) return <p className="text-gray-400">Loading…</p>;
   if (error || !data) return <p className="text-red-500">Failed to load run.</p>;
@@ -47,7 +50,7 @@ export default function RunDetailPage() {
         </div>
       </div>
 
-      {/* Charts */}
+      {/* Net Worth & Cash Flow */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg border p-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Net Worth & Debt</h3>
@@ -59,6 +62,21 @@ export default function RunDetailPage() {
         </div>
       </div>
 
+      {/* Asset-level charts */}
+      {assetRows && assetRows.length > 0 && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-lg border p-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Portfolio Composition</h3>
+            <PortfolioChart rows={assetRows} retirementDate={retirementDate} />
+          </div>
+          <div className="bg-white rounded-lg border p-4">
+            <h3 className="text-sm font-semibold text-gray-700 mb-2">Income by Source</h3>
+            <IncomeStackChart rows={assetRows} retirementDate={retirementDate} />
+          </div>
+        </div>
+      )}
+
+      {/* Tax analysis */}
       {taxRows && taxRows.length > 0 && (
         <div className="bg-white rounded-lg border p-4">
           <h3 className="text-sm font-semibold text-gray-700 mb-2">Tax Analysis</h3>
