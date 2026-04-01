@@ -1,0 +1,13 @@
+# System-level configuration for the retirement model runner.
+
+paths:
+  model_config: ./configuration/config.json
+  assets_dir: ./configuration/assets
+  output_dir: ./output
+
+logging:
+  level: DEBUG
+  file: ./log/assets.log
+  max_bytes: 2500000
+  backup_count: 3
+  format: "[%(asctime)s] %(levelname)s in %(module)s: %(message)s"
