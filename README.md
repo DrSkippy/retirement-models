@@ -323,7 +323,7 @@ These are picked up by `models/db.py` via `pydantic-settings` (`DB_HOST` → fie
 
 ## REST API
 
-The Flask API serves simulation data to the React frontend (and any other client).
+The Flask API serves simulation data to the React frontend and any other client. CORS is enabled globally via `flask-cors`, so the API is callable cross-origin whether accessed directly or through the reverse proxy.
 
 ### Running locally (Python)
 
@@ -362,9 +362,11 @@ docker run --rm -p 8000:8000 \
 
 ## Web UI (React Frontend)
 
+Built with React 19, TypeScript, Tailwind CSS v4, Recharts, and TanStack Query/Table. The UI is styled with a full Tailwind design system — coloured tag badges, sortable tables, responsive chart panels, and a ruin probability gauge.
+
 ### Running locally (development)
 
-Requires Node 22+. The Vite dev server proxies `/api` to `localhost:8000`.
+Requires Node 22+. The Vite dev server proxies `/api` and `/health` to `localhost:8000`.
 
 ```bash
 cd frontend
@@ -383,52 +385,72 @@ npm run build     # outputs to frontend/dist/
 
 | Path | Description |
 |------|-------------|
-| `/runs` | Sortable, filterable table of all simulation runs |
-| `/runs/:id` | Full detail view: net worth, cash flow, tax analysis charts |
-| `/mc` | List of Monte Carlo run sets with ruin probability summary |
-| `/mc/:id` | Fan chart (P10–P90 bands), ruin gauge, terminal wealth distribution |
-| `/compare?ids=1,2,3` | Side-by-side net worth chart comparison across runs |
+| `/runs` | Sortable table of all simulation runs with tags, terminal net worth, and ruin status |
+| `/runs/:id` | Full detail view: net worth & debt, free cash flow, portfolio composition, income-by-source stack, and tax analysis charts |
+| `/mc` | List of Monte Carlo run sets with ruin probability and P50 terminal wealth |
+| `/mc/:id` | Fan chart (P10–P90 bands), ruin probability gauge, terminal wealth distribution histogram |
+| `/compare?ids=1,2,3` | Side-by-side net worth chart comparison across up to three runs |
 
 ---
 
-## Full-Stack Deployment (Docker Compose)
+## Full-Stack Deployment
 
-Deploys three containers behind Nginx: the Flask API (Gunicorn), the React frontend (Nginx static), and the reverse proxy.
+The stack is deployed as two Docker containers (API and frontend) whose images are stored in a local registry at `localhost:5000`. A separate Nginx instance (managed outside Compose) handles reverse proxying.
 
-### Build and start
+### Port layout
+
+| Service | Container port | Host port |
+|---------|---------------|-----------|
+| API (Gunicorn) | 8000 | 8185 |
+| Frontend (Nginx static) | 80 | 8186 |
+| Nginx reverse proxy | 8100 | 8100 |
+
+### 1. Build and push images
+
+Build from the project root and push to the local registry:
 
 ```bash
-docker compose up --build
+# API
+docker build -f Dockerfile.api -t localhost:5000/retirement-api:latest .
+docker push localhost:5000/retirement-api:latest
+
+# Frontend
+docker build -f frontend/Dockerfile.frontend -t localhost:5000/retirement-frontend:latest frontend
+docker push localhost:5000/retirement-frontend:latest
 ```
 
-The stack listens on port `8080`. Set `DB_*` environment variables before running (direnv loads them from `.envrc` automatically):
+### 2. Deploy with Compose
+
+Set `DB_*` environment variables before running (direnv loads them from `.envrc` automatically):
 
 ```bash
-# With direnv active:
-docker compose up --build
+docker compose up -d
 
-# Or pass explicitly:
+# Or pass credentials explicitly:
 DB_HOST=192.168.1.91 DB_PORT=5434 DB_NAME=retirement-models \
 DB_USER=scott DB_PASSWORD=your_password \
-docker compose up --build
+docker compose up -d
 ```
 
-### Verify deployment
+### 3. Verify deployment
 
 ```bash
-curl http://localhost:8080/health
-curl http://localhost:8080/api/runs | jq '.[0]'
+curl http://192.168.1.91:8185/health        # API direct
+curl http://192.168.1.91:8185/api/runs      # runs list direct
+curl http://retirement.lambda-dual.home.lan:8100/health   # through Nginx
 ```
 
-Browse to `http://localhost:8080` for the React UI.
+Browse to `http://retirement.lambda-dual.home.lan:8100` for the React UI.
 
 ### Nginx routing
 
+Nginx is configured in `nginx/retirement.conf` and deployed separately (outside Compose). It listens on port 8100 and routes to the host-bound container ports:
+
 | Path | Routed to |
 |------|-----------|
-| `/api/*` | Flask/Gunicorn (`api:8000`) |
-| `/health` | Flask/Gunicorn (`api:8000`) |
-| `/` | React SPA (`frontend:80`) |
+| `/api/*` | API container (`192.168.1.91:8185`) |
+| `/health` | API container (`192.168.1.91:8185`) |
+| `/` | Frontend container (`192.168.1.91:8186`) |
 
 External access is provided via Cloudflare Tunnel — no ports are exposed directly to the internet.
 
@@ -467,6 +489,7 @@ Test modules cover: `assets`, `config`, `expenses`, `monte_carlo`, `reporting`, 
 | `numpy` | Stochastic return sampling and percentile computation |
 | `sqlalchemy` + `psycopg2-binary` | PostgreSQL persistence |
 | `flask` + `gunicorn` | REST API and production WSGI server |
+| `flask-cors` | Cross-origin request support for the API |
 | `tqdm` | Progress bars |
 | `pyyaml` | System config loading |
 | `notebook` | Jupyter workbooks |
