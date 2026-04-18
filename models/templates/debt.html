@@ -1,0 +1,73 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ run_name }} — Debt Analysis{% endblock %}
+
+{% block nav_links %}
+  <a href="index.html">Summary</a>
+  <a href="timeseries.html">Time Series</a>
+  <a href="portfolio.html">Portfolio</a>
+  <a href="tax.html">Tax Analysis</a>
+  <a href="debt.html" class="active">Debt</a>
+  <a href="parameters.html">Parameters</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Debt Analysis</h1>
+  <div class="subtitle" style="margin-top:0.4rem;color:var(--muted);font-size:0.9rem;">
+    Payoff timelines and lifetime interest estimates for all modelled loans
+  </div>
+</div>
+
+{% for a in debt_assets %}
+<div class="section-header">{{ a.name }}</div>
+<div class="metric-grid" style="grid-template-columns:repeat(auto-fill,minmax(180px,1fr));">
+  <div class="metric-card">
+    <div class="label">Interest Rate</div>
+    <div class="value" style="font-size:1.5rem;">{{ a.rate_fmt }}</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">Monthly Payment</div>
+    <div class="value" style="font-size:1.5rem;">{{ fmt_dollar(a.payment) }}</div>
+    {% if a.extra_principal > 0 %}
+    <div class="sub">+ {{ fmt_dollar(a.extra_principal) }} extra/mo</div>
+    {% endif %}
+  </div>
+  <div class="metric-card">
+    <div class="label">Starting Balance</div>
+    <div class="value" style="font-size:1.5rem;">{{ fmt_dollar(a.initial_debt) }}</div>
+  </div>
+  <div class="metric-card {% if a.payoff_date %}positive{% else %}navy{% endif %}">
+    <div class="label">Payoff Date</div>
+    <div class="value" style="font-size:1.3rem;">{{ a.payoff_date_fmt }}</div>
+  </div>
+  <div class="metric-card negative">
+    <div class="label">Total Interest (sim)</div>
+    <div class="value" style="font-size:1.5rem;">{{ a.total_interest_fmt }}</div>
+    <div class="sub">interest paid through payoff</div>
+  </div>
+  <div class="metric-card navy">
+    <div class="label">Total Cost of Loan</div>
+    <div class="value" style="font-size:1.5rem;">{{ a.total_cost_fmt }}</div>
+    <div class="sub">principal + interest</div>
+  </div>
+</div>
+{% endfor %}
+
+<div class="section-header">Debt Balance Over Time</div>
+<div class="chart-grid-1col">
+  <div class="chart-card">{{ chart_balance }}</div>
+</div>
+
+<div class="section-header">Monthly Interest &amp; Cumulative Cost</div>
+<div class="chart-grid-2col">
+  <div class="chart-card">{{ chart_monthly_interest }}</div>
+  <div class="chart-card">{{ chart_cumulative }}</div>
+</div>
+
+<div class="section-header">Total Cost of Borrowing</div>
+<div class="chart-grid-1col" style="max-width:640px;">
+  <div class="chart-card">{{ chart_total_cost }}</div>
+</div>
+
+{% endblock %}

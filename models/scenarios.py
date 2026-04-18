@@ -98,6 +98,7 @@ class RetirementFinancialModel:
                 f"Asset {asset.name} scenario dates set: {asset.start_date} to {asset.end_date}"
                 f" with retirement date {self.retirement_date}"
             )
+            asset.pre_calculate(self.start_date)
 
         self.timeline = create_datetime_sequence(self.start_date, self.end_date)
         logging.info(

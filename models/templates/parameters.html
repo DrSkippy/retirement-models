@@ -1,0 +1,154 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ run_name }} — Parameters{% endblock %}
+
+{% block nav_links %}
+  {% if is_mc %}
+    <a href="index.html">Summary</a>
+    <a href="distribution.html">Distribution</a>
+    <a href="parameters.html" class="active">Parameters</a>
+  {% else %}
+    <a href="index.html">Summary</a>
+    <a href="timeseries.html">Time Series</a>
+    <a href="portfolio.html">Portfolio</a>
+    <a href="tax.html">Tax Analysis</a>
+    <a href="debt.html">Debt</a>
+    <a href="parameters.html" class="active">Parameters</a>
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Model Parameters</h1>
+  <div class="subtitle">Configuration used for this simulation run</div>
+</div>
+
+{# ── Model Behavior Parameters ── #}
+<div class="section-header">Model Behavior Parameters</div>
+<div class="param-grid">
+
+  <div class="card">
+    <div class="card-title">Savings &amp; Withdrawal</div>
+    <table class="data-table">
+      <tbody>
+        {% for row in behavior.savings %}
+        <tr><td>{{ row.label }}</td><td class="num">{{ row.value }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Portfolio Allocation</div>
+    <table class="data-table">
+      <tbody>
+        {% for row in behavior.allocation %}
+        <tr><td>{{ row.label }}</td><td class="num">{{ row.value }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Tax Rates</div>
+    <table class="data-table">
+      <tbody>
+        {% for row in behavior.taxes %}
+        <tr><td>{{ row.label }}</td><td class="num">{{ row.value }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+</div>
+
+{# ── Initial Conditions ── #}
+<div class="section-header">Initial Conditions</div>
+
+<div class="card" style="margin-bottom:1.25rem;">
+  <div class="card-title">Simulation Timeline</div>
+  <table class="data-table">
+    <tbody>
+      {% for row in initial.timeline %}
+      <tr><td>{{ row.label }}</td><td class="num">{{ row.value }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="asset-grid">
+  {% for asset in initial.assets %}
+  <div class="card asset-card">
+    <div style="display:flex;align-items:baseline;gap:0.6rem;margin-bottom:0.75rem;">
+      <span class="asset-name">{{ asset.name }}</span>
+      <span class="badge {{ asset.type_badge }}">{{ asset.type }}</span>
+      <span class="badge badge-muted">{{ asset.tax_class }}</span>
+    </div>
+    {% if asset.description %}
+    <div style="font-size:0.8rem;color:var(--muted);margin-bottom:0.75rem;">{{ asset.description }}</div>
+    {% endif %}
+
+    {% if asset.initial_conditions %}
+    <div class="card-title" style="margin-top:0.25rem;">Starting Values</div>
+    <table class="data-table" style="margin-bottom:0.75rem;">
+      <tbody>
+        {% for row in asset.initial_conditions %}
+        <tr>
+          <td>{{ row.label }}</td>
+          <td class="num {% if row.color %}{{ row.color }}{% endif %}">{{ row.value }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if asset.behavior %}
+    <div class="card-title">Rates &amp; Behavior</div>
+    <table class="data-table">
+      <tbody>
+        {% for row in asset.behavior %}
+        <tr>
+          <td>{{ row.label }}</td>
+          <td class="num">{{ row.value }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+    {% if asset.schedule %}
+    <div class="card-title" style="margin-top:0.75rem;">Benefit Schedule</div>
+    <table class="data-table">
+      <thead><tr><th>Start Age</th><th class="num">Monthly Benefit</th></tr></thead>
+      <tbody>
+        {% for row in asset.schedule %}
+        <tr><td>{{ row.age }}</td><td class="num">{{ row.amount }}</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+
+  </div>
+  {% endfor %}
+</div>
+
+<style>
+  .param-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+  }
+  .asset-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .asset-card { padding: 1.25rem 1.5rem; }
+  .asset-name { font-weight: 700; font-size: 0.95rem; color: var(--navy); }
+  .badge-equity   { background:#dbeafe; color:#1d4ed8; }
+  .badge-realestate { background:#d1fae5; color:#065f46; }
+  .badge-salary   { background:#fef3c7; color:#92400e; }
+</style>
+{% endblock %}

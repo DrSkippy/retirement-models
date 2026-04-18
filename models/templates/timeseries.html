@@ -1,0 +1,45 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ run_name }} — Time Series{% endblock %}
+
+{% block nav_links %}
+  <a href="index.html">Summary</a>
+  <a href="timeseries.html" class="active">Time Series</a>
+  <a href="portfolio.html">Portfolio</a>
+  <a href="tax.html">Tax Analysis</a>
+  <a href="debt.html">Debt</a>
+  <a href="parameters.html">Parameters</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Time Series Analysis</h1>
+  <div class="subtitle">Monthly projections across all financial dimensions</div>
+</div>
+
+<div class="chart-grid-1col">
+  <div class="chart-card">
+    <h3>Net Worth &amp; Debt</h3>
+    {{ chart_net_worth }}
+  </div>
+</div>
+
+<div class="chart-grid-2x2">
+  <div class="chart-card">
+    <h3>Income Sources</h3>
+    {{ chart_income }}
+  </div>
+  <div class="chart-card">
+    <h3>Free Cash Flow</h3>
+    {{ chart_fcf }}
+  </div>
+  <div class="chart-card">
+    <h3>Investment Flow</h3>
+    {{ chart_investment }}
+  </div>
+  <div class="chart-card">
+    <h3>Effective Tax Rate</h3>
+    {{ chart_tax_rate }}
+  </div>
+</div>
+{% endblock %}

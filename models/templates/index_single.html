@@ -1,0 +1,90 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ run_name }} — Summary{% endblock %}
+
+{% block nav_links %}
+  <a href="index.html" class="active">Summary</a>
+  <a href="timeseries.html">Time Series</a>
+  <a href="portfolio.html">Portfolio</a>
+  <a href="tax.html">Tax Analysis</a>
+  <a href="debt.html">Debt</a>
+  <a href="parameters.html">Parameters</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Retirement Projection Summary</h1>
+  <div class="subtitle" style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;margin-top:0.5rem;">
+    <span class="badge badge-muted">{{ run_name }}</span>
+    {% if start_date %}<span class="badge badge-blue">Start: {{ start_date }}</span>{% endif %}
+    {% if retirement_date %}<span class="badge badge-amber">Retirement: {{ retirement_date }}</span>{% endif %}
+    {% if ss_start_date %}<span class="badge badge-emerald">Social Security: {{ ss_start_date }}</span>{% endif %}
+    {% if rmd_date %}<span class="badge badge-red">RMD: {{ rmd_date }}</span>{% endif %}
+  </div>
+</div>
+
+<div class="section-header">Key Metrics</div>
+<div class="metric-grid">
+  <div class="metric-card positive">
+    <div class="label">Peak Net Worth</div>
+    <div class="value">{{ metrics.peak_net_worth_fmt }}</div>
+    <div class="sub">at age {{ metrics.peak_age_fmt }}</div>
+  </div>
+
+  {% if metrics.min_post_retirement_raw is not none %}
+  <div class="metric-card {% if metrics.min_post_retirement_raw < 0 %}negative{% else %}positive{% endif %}">
+    <div class="label">Min Post-Retirement Net Worth</div>
+    <div class="value">{{ metrics.min_post_retirement_net_worth_fmt }}</div>
+    <div class="sub">lowest point after retirement</div>
+  </div>
+  {% endif %}
+
+  <div class="metric-card navy">
+    <div class="label">Terminal Net Worth</div>
+    <div class="value">{{ metrics.terminal_net_worth_fmt }}</div>
+    <div class="sub">end of projection</div>
+  </div>
+
+  {% if metrics.net_worth_at_70_fmt %}
+  <div class="metric-card">
+    <div class="label">Net Worth at 70</div>
+    <div class="value">{{ metrics.net_worth_at_70_fmt }}</div>
+  </div>
+  {% endif %}
+
+  {% if metrics.net_worth_at_75_fmt %}
+  <div class="metric-card">
+    <div class="label">Net Worth at 75</div>
+    <div class="value">{{ metrics.net_worth_at_75_fmt }}</div>
+  </div>
+  {% endif %}
+
+  {% if metrics.net_worth_at_80_fmt %}
+  <div class="metric-card">
+    <div class="label">Net Worth at 80</div>
+    <div class="value">{{ metrics.net_worth_at_80_fmt }}</div>
+  </div>
+  {% endif %}
+
+  {% if metrics.net_worth_at_85_fmt %}
+  <div class="metric-card">
+    <div class="label">Net Worth at 85</div>
+    <div class="value">{{ metrics.net_worth_at_85_fmt }}</div>
+  </div>
+  {% endif %}
+</div>
+
+<div class="section-header">Explore Detail Pages</div>
+<div class="nav-pills">
+  <a href="timeseries.html"><span class="arrow">&#x2192;</span> Time Series</a>
+  <a href="portfolio.html"><span class="arrow">&#x2192;</span> Portfolio Composition</a>
+  <a href="tax.html"><span class="arrow">&#x2192;</span> Tax Analysis</a>
+  <a href="debt.html"><span class="arrow">&#x2192;</span> Debt Analysis</a>
+</div>
+
+<div class="section-header">Net Worth Over Time</div>
+<div class="chart-grid-1col">
+  <div class="chart-card">{{ chart_net_worth }}</div>
+</div>
+
+{% endblock %}

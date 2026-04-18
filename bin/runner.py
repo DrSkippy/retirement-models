@@ -5,10 +5,9 @@ from pathlib import Path
 
 import yaml
 
+from models.html_report import HtmlReportBuilder
 from models.monte_carlo import MonteCarloRunner
-from models.reporting import ReportBuilder
 from models.scenarios import *
-from models.utils import plot_asset_model_data
 
 _cfg = yaml.safe_load(Path("config.yaml").read_text())
 
@@ -42,11 +41,6 @@ OUTPUT_DIR = _cfg["paths"]["output_dir"]
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Retirement Financial Model")
-    parser.add_argument(
-        "--asset-details",
-        action="store_true",
-        help="Generate per-asset plots",
-    )
     parser.add_argument(
         "--monte-carlo",
         type=int,
@@ -100,9 +94,15 @@ if __name__ == "__main__":
             f"Done. Ruin probability: {ruin_pct:.1%}  "
             f"(terminal wealth P50: ${mc_results.terminal_wealth_percentiles([50])[50]:,.0f})"
         )
-        report = ReportBuilder(output_dir=OUTPUT_DIR)
-        path = report.monte_carlo_report(mc_results)
-        print(f"Monte Carlo report: {path}")
+        from models.config import WorldConfig
+        world_config = WorldConfig.from_json(CONFIG_FILE)
+        report = HtmlReportBuilder(output_dir=OUTPUT_DIR, label=args.label)
+        run_dir = report.monte_carlo_report(
+            mc_results,
+            world_config=world_config,
+            asset_config_dicts=asset_config_dicts,
+        )
+        print(f"Monte Carlo mini-site: {run_dir / 'index.html'}")
 
         if args.save_db:
             from models.db import get_connection, save_config_snapshot, save_mc_run
@@ -127,15 +127,21 @@ if __name__ == "__main__":
         model.setup(ASSETS_DIR)
         rm, rh, am, ah = model.run_model(show_progress=True)
 
-        if args.asset_details:
-            for asset in model.assets:
-                logging.info(f"Asset: {asset.name}, Value: {asset.value}")
-                df = model.get_asset_dataframe(asset.name, am, ah)
-                plot_asset_model_data(df, asset.name)
-
         df = model.get_scenario_dataframe(rm, rh)
-        plot_asset_model_data(df, "Retirement Model", 2)
         persist_metric("net_worth", ["net_worth"], df, output_path=f"{OUTPUT_DIR}/metrics")
+
+        asset_dfs = {
+            asset.name: model.get_asset_dataframe(asset.name, am, ah)
+            for asset in model.assets
+        }
+        report = HtmlReportBuilder(output_dir=OUTPUT_DIR, label=args.label)
+        run_dir = report.single_run_report(
+            df,
+            asset_dfs,
+            world_config=model.world_config,
+            asset_config_dicts=asset_config_dicts,
+        )
+        print(f"Single-run mini-site: {run_dir / 'index.html'}")
 
         if args.save_db:
             from models.db import get_connection, save_config_snapshot, save_simulation_run

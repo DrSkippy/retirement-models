@@ -1,0 +1,38 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ run_name }} — Portfolio{% endblock %}
+
+{% block nav_links %}
+  <a href="index.html">Summary</a>
+  <a href="timeseries.html">Time Series</a>
+  <a href="portfolio.html" class="active">Portfolio</a>
+  <a href="tax.html">Tax Analysis</a>
+  <a href="debt.html">Debt</a>
+  <a href="parameters.html">Parameters</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Portfolio Composition</h1>
+  <div class="subtitle">Asset growth, allocation, and income by source</div>
+</div>
+
+<div class="chart-grid-2x2">
+  <div class="chart-card">
+    <h3>Stacked Asset Values</h3>
+    {{ chart_stacked_assets }}
+  </div>
+  <div class="chart-card">
+    <h3>Per-Equity Asset Growth</h3>
+    {{ chart_equity_growth }}
+  </div>
+  <div class="chart-card">
+    <h3>Real Estate: Value / Debt / Equity</h3>
+    {{ chart_real_estate }}
+  </div>
+  <div class="chart-card">
+    <h3>Annual Income by Asset</h3>
+    {{ chart_annual_income }}
+  </div>
+</div>
+{% endblock %}

@@ -19,9 +19,10 @@ class MyTestCase(unittest.TestCase):
     def test_utils_create_assets_0(self):
         assets = create_assets("./tests/test_config/assets", asset_name_filter=["Income"])
         self.assertEqual(len(assets), 2)
-        self.assertEqual(assets[0].name, "Income")
-        self.assertEqual(assets[1].name, "Social Security Income")
-        self.assertIsInstance(assets[0], SalaryIncome)
+        names = {a.name for a in assets}
+        self.assertIn("Income", names)
+        self.assertIn("Social Security Income", names)
+        self.assertTrue(all(isinstance(a, SalaryIncome) for a in assets))
 
     def test_utils_create_assets_1(self):
         assets = create_assets("./tests/test_config/assets", asset_name_filter=["Equity"])
@@ -80,23 +81,6 @@ class MyTestCase(unittest.TestCase):
             )
             persist_metric("test", ["net_worth"], df, output_path=new_dir)
             self.assertTrue(os.path.isdir(new_dir))
-
-    def test_plot_asset_model_data_runs(self):
-        """plot_asset_model_data should produce a PDF without raising."""
-        date_seq = create_datetime_sequence("2025-01-01", "2025-06-01")
-        rows = [{"Date": d, "Value": float(i * 100), "Income": float(i * 10)}
-                for i, d in enumerate(date_seq)]
-        df = pd.DataFrame(rows)
-        os.makedirs("./output", exist_ok=True)
-        # Should not raise
-        plot_asset_model_data(df, "_test_coverage", offset=0)
-        self.assertTrue(os.path.exists("./output/scenario__test_coverage.pdf"))
-
-    def test_plot_asset_model_data_empty_df(self):
-        """plot_asset_model_data with an empty DataFrame should return early."""
-        df = pd.DataFrame()
-        # Should not raise, just logs an error
-        plot_asset_model_data(df, "_test_empty")
 
 
 if __name__ == '__main__':

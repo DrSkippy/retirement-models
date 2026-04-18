@@ -1,0 +1,52 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ run_name }} — Tax Analysis{% endblock %}
+
+{% block nav_links %}
+  <a href="index.html">Summary</a>
+  <a href="timeseries.html">Time Series</a>
+  <a href="portfolio.html">Portfolio</a>
+  <a href="tax.html" class="active">Tax Analysis</a>
+  <a href="debt.html">Debt</a>
+  <a href="parameters.html">Parameters</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Tax Analysis</h1>
+  <div class="subtitle">Tax burden, effective rates, and income classification over time</div>
+</div>
+
+<div class="chart-grid-2x2">
+  <div class="chart-card">
+    <h3>Taxes vs. Income</h3>
+    {{ chart_taxes_income }}
+  </div>
+  <div class="chart-card">
+    <h3>Effective Tax Rate (%)</h3>
+    {{ chart_eff_rate }}
+  </div>
+  <div class="chart-card">
+    <h3>Income by Tax Class</h3>
+    {{ chart_tax_class }}
+  </div>
+  <div class="chart-card">
+    <h3>Average Monthly Taxes by Phase</h3>
+    {{ chart_phase_comparison }}
+  </div>
+</div>
+
+{% if has_rmd %}
+<div class="section-header">Required Minimum Distributions (RMD)</div>
+<div class="chart-grid-2x2">
+  <div class="chart-card">
+    <h3>Taxes During RMD Period (Age 73+)</h3>
+    {{ chart_rmd_taxes }}
+  </div>
+  <div class="chart-card">
+    <h3>Cumulative Taxes by Phase</h3>
+    {{ chart_cumulative_taxes }}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

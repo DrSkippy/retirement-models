@@ -1,0 +1,35 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ run_name }} — Distribution{% endblock %}
+
+{% block nav_links %}
+  <a href="index.html">Summary</a>
+  <a href="distribution.html" class="active">Distribution</a>
+  <a href="parameters.html">Parameters</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Terminal Wealth Distribution</h1>
+  <div class="subtitle">Statistical breakdown of {{ n_runs }} simulation outcomes</div>
+</div>
+
+<div class="chart-grid-2x2">
+  <div class="chart-card">
+    <h3>Terminal Wealth Histogram</h3>
+    {{ chart_hist }}
+  </div>
+  <div class="chart-card">
+    <h3>Ruin vs. Survival</h3>
+    {{ chart_ruin_gauge }}
+  </div>
+  <div class="chart-card">
+    <h3>Percentile Outcomes</h3>
+    {{ chart_waterfall }}
+  </div>
+  <div class="chart-card">
+    <h3>Time to Ruin Distribution</h3>
+    {{ chart_ruin_timing }}
+  </div>
+</div>
+{% endblock %}

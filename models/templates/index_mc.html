@@ -1,0 +1,72 @@
+{% extends "_base.html" %}
+
+{% block title %}{{ run_name }} — Monte Carlo Summary{% endblock %}
+
+{% block nav_links %}
+  <a href="index.html" class="active">Summary</a>
+  <a href="distribution.html">Distribution</a>
+  <a href="parameters.html">Parameters</a>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <h1>Monte Carlo Analysis</h1>
+  <div class="subtitle" style="display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;margin-top:0.5rem;">
+    <span class="badge badge-muted">{{ run_name }}</span>
+    <span class="badge badge-blue">{{ n_runs }} simulations</span>
+  </div>
+</div>
+
+<div class="section-header">Key Risk Metrics</div>
+<div class="metric-grid">
+  <div class="metric-card {{ ruin_color_class }}">
+    <div class="label">Ruin Probability</div>
+    <div class="value">{{ ruin_prob_pct }}</div>
+    <div class="sub">runs where net worth &lt; $0</div>
+  </div>
+  <div class="metric-card positive">
+    <div class="label">Median Terminal Wealth (P50)</div>
+    <div class="value">{{ pct_table_map.p50 }}</div>
+    <div class="sub">50th percentile outcome</div>
+  </div>
+  <div class="metric-card">
+    <div class="label">P10 Terminal Wealth</div>
+    <div class="value">{{ pct_table_map.p10 }}</div>
+    <div class="sub">pessimistic scenario</div>
+  </div>
+  <div class="metric-card positive">
+    <div class="label">P90 Terminal Wealth</div>
+    <div class="value">{{ pct_table_map.p90 }}</div>
+    <div class="sub">optimistic scenario</div>
+  </div>
+</div>
+
+<div class="section-header">Net Worth Fan Chart</div>
+<div class="chart-grid-1col">
+  <div class="chart-card">{{ chart_fan }}</div>
+</div>
+
+<div class="section-header">Percentile Outcomes</div>
+<div class="card" style="margin-bottom:2rem;">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Percentile</th>
+        <th class="num">Terminal Net Worth</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in pct_table %}
+      <tr>
+        <td>{{ row.label }}</td>
+        <td class="num {% if row.raw >= 0 %}pos{% else %}neg{% endif %}">{{ row.formatted }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="nav-pills">
+  <a href="distribution.html"><span class="arrow">&#x2192;</span> View Distribution Analysis</a>
+</div>
+{% endblock %}

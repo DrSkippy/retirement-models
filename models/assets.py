@@ -187,6 +187,18 @@ class Asset:
         """Hook for subclass-specific first-period initialisation."""
         pass
 
+    def pre_calculate(self, start_date: object) -> None:
+        """Hook called once after scenario dates are resolved, before simulation runs.
+
+        Subclasses override this to derive initial state from external data or
+        schedules (e.g. computing a mortgage balance from an amortization table).
+        The base implementation is a no-op so existing assets are unaffected.
+
+        Args:
+            start_date: The simulation start date (already resolved from placeholders).
+        """
+        pass
+
     def update_value_with_investment(self, incremental_investment: float) -> float:
         """Add an investment amount to the asset value.
 
@@ -371,25 +383,93 @@ class REAsset(Asset):
         self.value = self.initial_value
         self.debt = self.initial_debt
         self.growth_rate = self.appreciation_rate / MONTHS_IN_YEAR
+        # appreciation_rate_volatility is optional; 0 = deterministic (default)
+        self.growth_rate_volatility = getattr(self, "appreciation_rate_volatility", 0.0)
         self.expense_rate = self.property_tax_rate / MONTHS_IN_YEAR
         self.income_based_expenses_rate = self.management_fee_rate + self.rental_expense_rate
         self.income = self.monthly_rental_income
         self.monthly_interest_rate = self.interest_rate / MONTHS_IN_YEAR
+        # extra_principal_payment is optional; 0 = no extra paydown (default)
+        self._extra_principal = getattr(self, "extra_principal_payment", 0.0)
 
     def _period_update_finalize_metrics(
         self, period: int, period_date: Optional[object] = None
     ) -> None:
         """Advance the mortgage one period and update expense components."""
         interest = self.debt * self.monthly_interest_rate
-        self.payment = min(self.payment, self.debt + interest)
-        self.principle_payment = self.payment - interest
+        regular_payment = min(self.payment, self.debt + interest)
+        self.principle_payment = regular_payment - interest
         self.debt -= self.principle_payment
+
+        # Extra principal paydown: applied only while debt remains, added to cash outflow.
+        extra = min(self._extra_principal, self.debt)
+        self.debt -= extra
+
         self.expenses = self.insurance_cost / MONTHS_IN_YEAR
         self.expenses += self.income_based_expenses_rate * self.income
-        self.expenses += self.payment
+        self.expenses += regular_payment + extra
         logging.info(
             f"mort_status, {self.name}, {period}, {period_date}, "
-            f"{self.payment}, {interest}, {self.principle_payment}, {self.debt}"
+            f"payment={regular_payment:.2f}, interest={interest:.2f}, "
+            f"principal={self.principle_payment:.2f}, extra={extra:.2f}, balance={self.debt:.2f}"
+        )
+
+    def pre_calculate(self, start_date: object) -> None:
+        """Compute the mortgage balance at start_date from the amortization schedule.
+
+        Reads two optional config fields:
+          - loan_origination_date: date the mortgage was originated (YYYY-MM-DD)
+          - original_loan_amount:  original principal at origination
+
+        If either field is absent or None, falls back to the manually-specified
+        initial_debt value — existing configs require no changes.
+
+        The closed-form amortization balance formula used is:
+            B(n) = L*(1+r)^n - PMT*((1+r)^n - 1)/r
+        where n = months elapsed since origination, L = original amount,
+        r = monthly interest rate, PMT = regular monthly payment.
+
+        Args:
+            start_date: The simulation start date.
+        """
+        orig_date_raw = getattr(self, "loan_origination_date", None)
+        orig_amount = getattr(self, "original_loan_amount", None)
+
+        if orig_date_raw is None or orig_amount is None:
+            logging.info(
+                f"{self.name}: no origination data; using initial_debt={self.initial_debt:,.2f}"
+            )
+            return
+
+        if isinstance(orig_date_raw, str):
+            orig_date = datetime.strptime(orig_date_raw, FMT).date()
+        else:
+            orig_date = orig_date_raw
+
+        if start_date <= orig_date:
+            # Simulation starts at or before origination — use original amount.
+            self.initial_debt = float(orig_amount)
+            logging.info(f"{self.name}: start_date ≤ origination; initial_debt set to original loan amount")
+            return
+
+        months_elapsed = (
+            (start_date.year - orig_date.year) * 12
+            + (start_date.month - orig_date.month)
+        )
+        r = self.interest_rate / MONTHS_IN_YEAR
+        L = float(orig_amount)
+        pmt = self.payment
+
+        if r == 0.0:
+            balance = max(0.0, L - pmt * months_elapsed)
+        else:
+            factor = (1.0 + r) ** months_elapsed
+            balance = L * factor - pmt * (factor - 1.0) / r
+
+        self.initial_debt = max(0.0, balance)
+        logging.info(
+            f"{self.name}: pre-calculated mortgage balance at {start_date} "
+            f"= ${self.initial_debt:,.2f} ({months_elapsed} months from origination)"
         )
 
 
