@@ -5,6 +5,23 @@ from models.config import TaxConfig, WorldConfig
 from models.taxes import TaxCalculator
 from models.utils import *
 
+# IRS Uniform Lifetime Table (Publication 590-B, updated 2022).
+# Maps age → distribution period (annual divisor used in RMD calculation).
+# RMD (annual) = prior-year-end account balance ÷ distribution_period.
+_IRS_UNIFORM_LIFETIME_TABLE: dict[int, float] = {
+    70: 27.4, 71: 26.5, 72: 25.5, 73: 24.6, 74: 23.7,
+    75: 22.9, 76: 22.0, 77: 21.1, 78: 20.2, 79: 19.4,
+    80: 18.5, 81: 17.7, 82: 16.8, 83: 16.0, 84: 15.2,
+    85: 14.4, 86: 13.7, 87: 12.9, 88: 12.2, 89: 11.5,
+    90: 10.8, 91: 10.1, 92: 9.5,  93: 8.9,  94: 8.3,
+    95: 7.8,  96: 7.3,  97: 6.9,  98: 6.5,  99: 6.1,
+    100: 5.7, 101: 5.3, 102: 5.0, 103: 4.7, 104: 4.4,
+    105: 4.1, 106: 3.9, 107: 3.7, 108: 3.5, 109: 3.4,
+    110: 3.3, 111: 3.1, 112: 2.9, 113: 2.7, 114: 2.5,
+    115: 2.3, 116: 2.1, 117: 1.9, 118: 1.7, 119: 1.5,
+    120: 1.4,
+}
+
 
 class RetirementFinancialModel:
     CONFIG_PATH = "./configuration/assets"
@@ -54,6 +71,11 @@ class RetirementFinancialModel:
         self.start_date = datetime.strptime(self.start_date, FMT).date()
         self.end_date = datetime.strptime(self.end_date, FMT).date()
         logging.info(f"Start date: {self.start_date}, End date: {self.end_date}")
+
+        if not hasattr(self, "roth_savings_rate"):
+            self.roth_savings_rate = 0.0
+        if not hasattr(self, "rmd_age"):
+            self.rmd_age = 73
 
         self.retirement_date = self.birth_date + timedelta(
             days=self.retirement_age * DAYS_IN_YEAR
@@ -119,6 +141,8 @@ class RetirementFinancialModel:
             "Date",
             "age",
             "retirement_withdrawal",
+            "rmd_required",
+            "roth_withdrawal",
             "net_worth",
             "debt",
             "monthly_taxable_income",
@@ -143,17 +167,22 @@ class RetirementFinancialModel:
                 snapshot = asset.period_snapshot(p, pdate, addl=addl)
                 adata[asset.name].append(snapshot)
 
-            # 401k withdrawals
+            # 401k withdrawals (taxable as ordinary income)
             retirement_withdraw = 0.0
+            rmd_required = 0.0
+            roth_withdraw = 0.0
             if age >= self.retirement_age:
-                retirement_withdraw = max(
-                    [
-                        0.0,
-                        self.withdrawal_rate
-                        * self.retirement_portfolio_value()
-                        / MONTHS_IN_YEAR,
-                    ]
-                )
+                portfolio = self.retirement_portfolio_value()
+                flat_withdrawal = self.withdrawal_rate * portfolio / MONTHS_IN_YEAR
+
+                if age >= self.rmd_age:
+                    rmd_required = self.calculate_rmd_withdrawal(age, portfolio)
+                    # Must take at least the IRS-required minimum; may take more.
+                    retirement_withdraw = max(flat_withdrawal, rmd_required)
+                else:
+                    retirement_withdraw = flat_withdrawal
+
+                retirement_withdraw = max(0.0, retirement_withdraw)
                 self.allocate_investment_evenly(
                     -retirement_withdraw * self.stock_allocation, "stock"
                 )
@@ -161,8 +190,26 @@ class RetirementFinancialModel:
                     -retirement_withdraw * self.bond_allocation, "bond"
                 )
                 logging.info(
-                    f"Age: {age:,.1f}, Retirement withdrawal: {retirement_withdraw:.2f}"
+                    f"Age: {age:,.1f}, Retirement withdrawal: {retirement_withdraw:.2f}, "
+                    f"RMD required: {rmd_required:.2f}"
                 )
+
+                # Roth IRA withdrawals (tax-free — not added to taxable income)
+                roth_portfolio = self.roth_portfolio_value()
+                if roth_portfolio > 0.0:
+                    roth_withdraw = max(
+                        0.0,
+                        self.withdrawal_rate * roth_portfolio / MONTHS_IN_YEAR,
+                    )
+                    self.allocate_investment_evenly(
+                        -roth_withdraw * self.stock_allocation, "roth ira stock"
+                    )
+                    self.allocate_investment_evenly(
+                        -roth_withdraw * self.bond_allocation, "roth ira bond"
+                    )
+                    logging.info(
+                        f"Age: {age:,.1f}, Roth withdrawal: {roth_withdraw:.2f}"
+                    )
 
             net_worth, debt = self.net_worth_debt()
             monthly_taxable_income = (
@@ -177,6 +224,7 @@ class RetirementFinancialModel:
             )
 
             investment = 0.0
+            roth_investment = 0.0
             if age < self.retirement_age:
                 logging.info(
                     f"Free cash flows: {free_cash_flows:,.2f}, Taxes: {taxes_paid:,.2f}, Age: {age:,.1f}"
@@ -188,6 +236,16 @@ class RetirementFinancialModel:
                 self.allocate_investment_evenly(
                     investment * self.bond_allocation, "401k bond"
                 )
+                if self.roth_savings_rate > 0.0:
+                    roth_investment = max(
+                        0.0, self.roth_savings_rate * free_cash_flows
+                    )
+                    self.allocate_investment_evenly(
+                        roth_investment * self.stock_allocation, "roth ira stock"
+                    )
+                    self.allocate_investment_evenly(
+                        roth_investment * self.bond_allocation, "roth ira bond"
+                    )
 
             mdata.append(
                 [
@@ -195,13 +253,15 @@ class RetirementFinancialModel:
                     pdate,
                     age,
                     retirement_withdraw,
+                    rmd_required,
+                    roth_withdraw,
                     net_worth,
                     debt,
                     monthly_taxable_income,
                     monthly_operational_expenses,
                     taxes_paid,
                     free_cash_flows,
-                    investment,
+                    investment + roth_investment,
                 ]
             )
 
@@ -217,6 +277,39 @@ class RetirementFinancialModel:
 
     def retirement_portfolio_value(self, name_match: str = "401k") -> float:
         """Return net value of retirement portfolio assets matching name_match.
+
+        Parameters:
+            name_match: Case-insensitive substring to match asset names.
+        """
+        total_value = 0.0
+        for asset in self.assets:
+            if name_match in asset.name.lower():
+                total_value += asset.value - asset.debt
+        return total_value
+
+    def calculate_rmd_withdrawal(self, age: float, portfolio_value: float) -> float:
+        """Return the monthly Required Minimum Distribution for this period.
+
+        Uses the IRS Uniform Lifetime Table (Publication 590-B, 2022 update).
+        The annual RMD = portfolio_value ÷ distribution_period; monthly = annual ÷ 12.
+        This approximates the IRS rule (which uses the prior December 31 balance)
+        by using the current portfolio value each period.
+
+        Args:
+            age: Current age in fractional years.
+            portfolio_value: Current 401k portfolio balance.
+
+        Returns:
+            Monthly RMD amount; 0.0 if age is outside the table or portfolio is empty.
+        """
+        age_floor = int(age)
+        if portfolio_value <= 0.0 or age_floor not in _IRS_UNIFORM_LIFETIME_TABLE:
+            return 0.0
+        distribution_period = _IRS_UNIFORM_LIFETIME_TABLE[age_floor]
+        return portfolio_value / (distribution_period * MONTHS_IN_YEAR)
+
+    def roth_portfolio_value(self, name_match: str = "roth ira") -> float:
+        """Return net value of Roth IRA assets matching name_match.
 
         Parameters:
             name_match: Case-insensitive substring to match asset names.

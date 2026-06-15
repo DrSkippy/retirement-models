@@ -17,6 +17,7 @@ class TaxConfig(BaseModel):
     income: float
     capital_gain: float
     social_security: float
+    roth: float = 0.0
 
 
 class AllocationConfig(BaseModel):
@@ -47,6 +48,8 @@ class WorldConfig(BaseModel):
     inflation_rate: float
     savings_rate: float
     withdrawal_rate: float
+    roth_savings_rate: float = 0.0
+    rmd_age: int = 73
     tax_classes: TaxConfig
     allocation: AllocationConfig
     retirement_date: Optional[date] = None
@@ -86,6 +89,8 @@ class WorldConfig(BaseModel):
             inflation_rate=data["inflation_rate"],
             savings_rate=data["savings_rate"],
             withdrawal_rate=data["withdrawal_rate"],
+            roth_savings_rate=data.get("roth_savings_rate", 0.0),
+            rmd_age=data.get("rmd_age", 73),
             tax_classes=tax_classes,
             allocation=allocation,
         )

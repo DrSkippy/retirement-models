@@ -1,0 +1,13 @@
+{
+  "name": "Roth IRA Bonds",
+  "description": "Bond funds held in Roth IRA accounts",
+  "type": "Equity",
+  "initial_value": 0,
+  "initial_expense_rate": 0.0003,
+  "start_date": "first_date",
+  "end_date": "end_date",
+  "tax_class": "roth",
+  "appreciation_rate": 0.035,
+  "appreciation_rate_volatility": 0.005,
+  "dividend_rate": 0.025
+}

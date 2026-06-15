@@ -1,10 +1,11 @@
-import { BarChart2, GitCompare, TrendingUp } from "lucide-react";
+import { BarChart2, GitCompare, Settings, TrendingUp } from "lucide-react";
 import { NavLink, Outlet } from "react-router-dom";
 
 const navItems = [
   { to: "/runs", label: "Simulation Runs", icon: TrendingUp },
   { to: "/mc", label: "Monte Carlo", icon: BarChart2 },
   { to: "/compare", label: "Compare", icon: GitCompare },
+  { to: "/config", label: "Configuration", icon: Settings },
 ];
 
 export default function AppShell() {

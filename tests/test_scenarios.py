@@ -105,5 +105,57 @@ class MyTestCase(unittest.TestCase):
         taxes_with_withdrawal = m.calculate_monthly_taxes(10000.0)
         self.assertGreater(taxes_with_withdrawal, taxes_no_withdrawal)
 
+    def test_rmd_withdrawal_age_73(self):
+        """At age 73, RMD = portfolio / (24.6 * 12)."""
+        m = RetirementFinancialModel("./tests/test_config/test.json")
+        m.setup("./tests/test_config/assets")
+        portfolio = 1_000_000.0
+        rmd = m.calculate_rmd_withdrawal(73.5, portfolio)
+        expected = portfolio / (24.6 * 12)
+        self.assertAlmostEqual(rmd, expected, places=4)
+
+    def test_rmd_withdrawal_age_80(self):
+        """At age 80, RMD = portfolio / (18.5 * 12)."""
+        m = RetirementFinancialModel("./tests/test_config/test.json")
+        m.setup("./tests/test_config/assets")
+        portfolio = 500_000.0
+        rmd = m.calculate_rmd_withdrawal(80.9, portfolio)
+        expected = portfolio / (18.5 * 12)
+        self.assertAlmostEqual(rmd, expected, places=4)
+
+    def test_rmd_withdrawal_zero_portfolio(self):
+        """Zero portfolio should return 0.0."""
+        m = RetirementFinancialModel("./tests/test_config/test.json")
+        m.setup("./tests/test_config/assets")
+        self.assertAlmostEqual(m.calculate_rmd_withdrawal(75.0, 0.0), 0.0)
+
+    def test_rmd_withdrawal_pre_table_age(self):
+        """Age below the IRS table (< 70) should return 0.0."""
+        m = RetirementFinancialModel("./tests/test_config/test.json")
+        m.setup("./tests/test_config/assets")
+        self.assertAlmostEqual(m.calculate_rmd_withdrawal(65.0, 1_000_000.0), 0.0)
+
+    def test_rmd_increases_withdrawal_at_old_age(self):
+        """At high age the RMD should exceed a flat 4% withdrawal rate."""
+        m = RetirementFinancialModel("./tests/test_config/test.json")
+        m.setup("./tests/test_config/assets")
+        portfolio = 1_000_000.0
+        flat = 0.04 * portfolio / 12
+        rmd_90 = m.calculate_rmd_withdrawal(90.0, portfolio)
+        # At 90: factor=10.8, so RMD = 1_000_000 / (10.8*12) ≈ $7,716/mo vs $3,333/mo flat
+        self.assertGreater(rmd_90, flat)
+
+    def test_rmd_default_age_is_73(self):
+        """WorldConfig and model should default rmd_age to 73."""
+        m = RetirementFinancialModel("./tests/test_config/test.json")
+        self.assertEqual(m.rmd_age, 73)
+
+    def test_mheader_contains_rmd_required(self):
+        """run_model output header should include rmd_required column."""
+        m = RetirementFinancialModel("./tests/test_config/test.json")
+        m.setup("./tests/test_config/assets")
+        _, mheader, _, _ = m.run_model()
+        self.assertIn("rmd_required", mheader)
+
 if __name__ == '__main__':
     unittest.main()

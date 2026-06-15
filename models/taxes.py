@@ -18,6 +18,7 @@ class TaxableIncomeBreakdown(BaseModel):
     ordinary_income: float = 0.0
     capital_gains: float = 0.0
     social_security: float = 0.0
+    roth: float = 0.0
 
 
 class TaxCalculator:
@@ -47,10 +48,12 @@ class TaxCalculator:
         taxes += breakdown.ordinary_income * self.config.income
         taxes += breakdown.capital_gains * self.config.capital_gain
         taxes += breakdown.social_security * self.config.social_security
+        taxes += breakdown.roth * self.config.roth  # always 0.0 — Roth withdrawals are tax-free
         logging.debug(
             f"Monthly taxes: ordinary={breakdown.ordinary_income * self.config.income:.2f}, "
             f"capital_gains={breakdown.capital_gains * self.config.capital_gain:.2f}, "
             f"social_security={breakdown.social_security * self.config.social_security:.2f}, "
+            f"roth={breakdown.roth * self.config.roth:.2f}, "
             f"total={taxes:.2f}"
         )
         return taxes
@@ -71,6 +74,7 @@ class TaxCalculator:
             "income": 0.0,
             "capital_gain": 0.0,
             "social_security": 0.0,
+            "roth": 0.0,
         }
         for asset in assets:
             if asset.tax_class in by_class:
@@ -79,4 +83,5 @@ class TaxCalculator:
             ordinary_income=by_class["income"] + withdrawal,
             capital_gains=by_class["capital_gain"],
             social_security=by_class["social_security"],
+            roth=by_class["roth"],
         )

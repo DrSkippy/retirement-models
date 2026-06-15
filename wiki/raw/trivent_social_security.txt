@@ -1,0 +1,209 @@
+A complete guide to Social Security benefits
+Social Security provides income support to millions of Americans. Understanding how it works can help you maximize your benefits when you retire—and help support your family if you become disabled or pass away.
+Published on
+Mar 7, 2025
+Last Updated
+Apr 22, 2026
+Author
+Thrivent
+Read time
+15 minutes
+
+Key takeaways
+Social Security pays retirement benefits, disability benefits and survivor benefits.
+You're eligible for retirement benefits if you're 62 or older and have worked and paid Social Security taxes for 10 years or more.
+Your retirement benefit will be reduced if you claim Social Security before full retirement age and will increase if you claim after your full retirement age, up to age 70.
+To qualify for disability benefits, you must meet a work requirement and the Social Security Administration's strict definition of disability.
+Your dependents may be eligible for monthly survivor benefits based on your earnings after you pass away.
+Social Security is woven into the fabric of American life, with about 1 in 5 U.S. residents receiving benefits as of early 2024. Yet, despite its familiarity, the program’s complex rules and jargon can leave many feeling puzzled.
+
+Understanding how Social Security works isn’t just about cutting through confusion—it’s about unlocking the full potential of the support available to you and your loved ones, whether you’re retiring, facing a disability or planning for your family’s future. With the right knowledge, you can feel more confident about how Social Security fits into your retirement strategy.
+
+So how does Social Security work? Read on to learn more about its key components, eligibility rules and benefit payouts.
+
+Social Security basics
+Before getting into the details of what Social Security offers, it helps to know where the money from this federal program comes from and who can benefit from it.
+
+How Social Security is funded & paid
+Social Security is funded through payroll taxes. Most employers withhold these taxes from their workers' wages. If you work for an employer in 2026, you and your employer will each pay a 6.2% Social Security tax on up to $184,500 of your earnings.
+
+If you're self-employed and paying into Social Security, you're responsible for both portions, resulting in a 12.4% Social Security tax on up to $184,500 of your net earnings.
+
+These taxes are collectively pooled and paid out by the Social Security Administration (SSA) when you apply and are approved for them. (See the FAQs for details on applying.) When you claim a benefit, the SSA calculates the monthly amount you'll get using formulas that consider how much you earned, your 35 highest years of earnings and your current age. In general, higher earnings and more years of work mean you get greater benefits.
+
+Types of Social Security benefits: Retirement, disability & survivor
+Social Security beneficiaries are mostly retired workers, accounting for more than 78% of the total benefits paid annually. But the Social Security program has two additional functions: supporting workers with qualifying disabilities and assisting survivors of deceased workers and dependents of beneficiaries. These each account for about 11% of what the government pays out in Social Security every year.
+
+Earning & claiming Social Security retirement benefits
+Anyone who has earned income pays Social Security taxes and may become eligible to take Social Security retirement benefits.
+
+Eligibility for Social Security retirement benefits
+The dollars you earn from working equate to Social Security credits. In 2026, you get one credit for every $1,890 of earned income up to a maximum of four credits once you've earned $7,560.
+
+It takes 40 credits to be eligible for retirement benefits, so the minimum you have to work to be eligible to claim Social Security retirement is 10 years, though it may take you longer if you aren't earning four credits per year.
+
+Age is also a factor in eligibility — you must be at least age 62 to claim Social Security retirement benefits.
+
+How much can I get in Social Security retirement benefits?
+Your Social Security retirement benefit amount is based on how much you earned, how long you worked and at what age you start taking benefits.
+
+How Social Security retirement benefits are calculated
+The starting point is figuring your average indexed monthly earnings (AIME). The SSA takes your highest-earning 35 years of work and divides it by the number of months you worked. The result is a monthly amount, your AIME, that represents the average of what you earned.
+
+The next step is to account for inflation and the costs of living in your benefit amount. For this the SSA applies a bend points formula to your AIME. Add together:
+
+90% of the first $1,286 of your AIME
+32% of AIME between $1,286 and $7,749
+15% of AIME over $7,749
+This new number is called your primary insurance amount (PIA). It's what your monthly Social Security retirement benefit would be if you were to claim retirement at your full retirement age.
+
+Claiming Social Security retirement benefits early or late
+You will receive 100% of your benefit if you start taking Social Security at your full retirement age (FRA) as set by the SSA:
+
+Born in 1954 or earlier: Your FRA is 66.
+Born in 1955: Your FRA is 66 and 2 months.
+Born in 1956: Your FRA is 66 and 4 months.
+Born in 1957: Your FRA is 66 and 6 months.
+Born in 1958: Your FRA is 66 and 8 months.
+Born in 1959: Your FRA is 66 and 10 months.
+Born in 1960 or later: Your FRA is 67.
+You can claim Social Security early — retirement benefits eligibility begins at age 62. But your monthly benefit amount will be lower (for life) based on how far away you are from your full retirement age.
+
+Let's say your FRA is 67. If you claim Social Security benefits at 62, you'll receive 70% of your full benefit. For every year you wait to claim benefits past full retirement age, your benefit amount increases by 8% per year (or two-thirds of 1% per month).
+
+It can make a big difference. Here's what your monthly benefit might look like if you claimed at different ages:
+
+Age
+Percentage of FRA Benefit
+Monthly Benefit Amount
+62
+70%
+$1,400
+63
+75%
+$1,500
+64
+80%
+$1,600
+65
+86.7%
+$1,734
+66
+93.3%
+$1,866
+67
+100%
+$2,000
+68
+108%
+$2,160
+69
+116%
+$2,320
+70
+124%
+$2,480
+Keep in mind that Social Security benefits are based on your individual income and work history. If you're married, you should take your and your spouse's ages and work histories into account and create a claiming strategy to optimize your benefits.
+
+Other factors that could impact your retirement benefit amount
+Your Social Security payment amounts may change throughout your retirement. Here are some reasons why:
+
+You're working while on Social Security. If you're working and younger than full retirement age during all of 2026, your benefit will be reduced by $1 for every $2 you earn beyond the annual limit of $24,480. If you're working and you reach full retirement age in 2026, your benefit will be reduced by $1 for every $3 you earn beyond the limit of $65,160 until the month you reach full retirement age. Once you reach full retirement age, you can earn any amount, and your benefit will not be reduced. The SSA will recalculate your benefit at that time and give you credit for the months that benefits were reduced or withheld because of excess earnings.
+Some of the money is going toward Medicare coverage. Many people who choose to purchase Medicare Part B (medical insurance) have their premiums deducted automatically from their Social Security payments. Premiums for Medicare Advantage or Medicare Part D drug coverage can generally be deducted as well.
+You've opted to have taxes withheld. As of 2025, you must pay federal income taxes on your Social Security benefits if your combined annual income (50% of your benefit amount plus any other earned income plus tax-exempt interest) is more than $25,000 ($32,000 if married and filing jointly). As your income increases, up to 85% of your benefits could be taxed. If you don't want your taxes withheld, you can pay the IRS directly.
+Cost of living adjustments (COLAs). These adjustments are designed to offset rising costs and can increase your monthly payouts. In 2026, Social Security benefits will rise by 2.8%, boosting payments by about $56 per month on average.
+Family benefits for Social Security retirement
+Certain family members of eligible retirees may be able to get up to half of the retiree's benefit amount:
+
+Spouses who are at least age 62 or are taking care of a child under age 16 or a child of any age who has a disability. Ex-spouses who were married for at least 10 years and some non-marital legal relationships also may be eligible.
+Children who are unmarried and under age 18, up to age 19 and still attending high school full time or of any age with a disability that developed before age 22.
+Earning & taking Social Security disability benefits
+Disability benefits can provide needed funds if you're unable to work due to a medical condition that's expected to last at least a year or result in death.
+
+Eligibility for Social Security disability benefits
+As with Social Security retirement benefits, anyone who has earned income pays Social Security taxes and may become eligible to take disability benefits.
+
+Disability eligibility works on the same credit system as retirement: You gain credits based on how much earned income you have. In 2026, it's one credit for every $1,890 up to a max of four credits once you reach $7,560.
+
+For disability, eligibility has two pieces: a qualifying disability and a work test.
+
+Qualifying disability for benefits
+The SSA asks five questions to determine if you have a qualifying disability:
+
+Are you working?
+Is your condition severe?
+Is your condition on the list of disabling conditions
+Can you do the work you did previously?
+Can you do any other type of work?
+Work test for disability benefits
+The work test factors in how old you are and how many years you've worked:
+
+Younger than age 24: You must have earned at least six credits in the three-year period before your disability started.
+Ages 24 to 31: Eligibility depends on whether you have credit for working half the time between age 21 and the time your disability began.
+Age 31 and older: You must have earned at least 20 credits in the 10-year period immediately before your disability began.
+How disability benefit amounts are determined
+Your Social Security disability is based on how much you earned and how long you worked to determine a primary insurance amount (PIA).
+
+If you're retirement age, the SSA will use the same formula for retirement benefits—adding your top 35 highest-earning years divided by the number of months worked. This number is your average indexed monthly earnings (AIME).
+
+However, workers can become disabled before retirement, so the SSA may use a different approach for AIME. This formula adds up the years worked between when you turned 22 and the year before you became disabled. Between one and five years are dropped from the calculation to leave your best years of income. That total is then divided by the number of months worked to arrive at AIME.
+
+The bend points formula is then applied to your AIME to arrive at your PIA:
+
+90% of the first $1,286 of your AIME
+32% of AIME between $1,286 and $7,749
+15% of AIME over $7,749
+You'll typically get 100% of your disability PIA, although it can be reduced if you receive workers' compensation or other public disability benefit payments.
+
+Social Security disability payments will continue until you recover medically, return to work or become self-employed, or convert to retirement benefits.
+
+It's important to know that qualifying for Social Security disability benefits can take a lot of time. The application process can take six to eight months, and if approved, it could take another five months to receive benefits. This long process is why getting your own disability insurance can be a good move for many working individuals.
+
+Family benefits for Social Security disability
+The guidelines for family members who can get up to half of the disability benefit are identical to those for retirement benefits:
+
+Spouses who are at least age 62 or are taking care of a child under 16 or a child of any age who has a disability. Ex-spouses who were married for at least 10 years, not currently married and are at least age 62.
+Children who are unmarried and under 18, up to 19 and still attending high school full time or of any age with a disability that developed before age 22.
+What's the difference between Social Security and SSI?
+Another federal program provides assistance to people with disabilities: Supplemental Security Income (SSI). You can apply for and receive both SSI and Social Security disability benefits.
+
+SSI and Social Security disability are often confused or conflated. The main distinction is that Supplement Security Income is not tied to your work history. Instead, it's a program for people who have little to no income or assets, have a disability, are blind or are aged 65 or older. The money from SSI is meant to cover basics like food, clothing and housing. If your income changes or you receive an inheritance while on SSI, you may lose this supplemental income.
+
+Understanding Social Security survivor benefits
+Spouses, divorced spouses, children, dependent parents and other family members may be eligible for Social Security survivor benefits. There are different eligibility requirements for each relationship category.
+
+Survivor benefits for spouses
+If you have a spouse who was eligible for Social Security benefits and dies, you may be able to claim their benefits as their survivor. Note that you don't get both your own Social Security benefits and theirs; the SSA will only pay you whichever amount is higher.
+
+What you can get depends on your age when you claim as the surviving spouse:
+
+Full retirement age or older (including divorced spouses): 100% of the benefit amount
+Age 60 or older but below full retirement age: 71.5% to 99% of the benefit amount (and it may be reduced if you earn income beyond the SSA's limits)
+Ages 50-59 with a disability that began within seven years of your spouse's death: 71.5% of the benefit amount
+Any age and caring for a child either younger than 16 or disabled: 75% of the benefit amount
+If you haven't reached retirement age, it may be to your advantage to claim survivor benefits for as long as you can and determine when you want to claim your own. A financial advisor can help you find your most strategic path.
+
+Due to the complexity of determining eligibility and benefit amounts, the SSA doesn't take online applications for survivor benefits. You'll need to provide several documents, including both your and their Social Security numbers, proof of death, marriage certificate, the late spouse's most recent tax return or W2 and bank information for setting up direct deposit.
+
+Survivor benefits for children
+If you have a parent or legal guardian who was eligible for Social Security benefits, you may be able to get 75% of their benefit as their surviving child.
+
+You can apply for the survivor benefit if you're under 18 or if you're younger than 19 and still attending high school full-time. In most cases, the benefit ends when you become an adult. Children of any age who have a qualifying disability generally can receive survivor benefits for life unless they marry.
+
+One consideration is that when a deceased parent or guardian has multiple children, the survivor benefits are split among them. The SSA sets a family maximum between 150%-188% of the worker's full retirement amount.
+
+When applying for benefits, you'll need to have your and your parent or guardian's Social Security numbers, a death certificate, and your birth certificate along with proof of adoption or proof of your parent's marriage.
+
+Survivor benefits for dependent parents
+If you're at least age 62 and financially dependent on your child when they died or became disabled, you may be eligible for a Social Security survivor benefit for parents.
+
+You'll need to be able to show:
+
+Proof you're the natural parent of the child or became their stepparent or adoptive parent before they turned 16.
+Timely documents showing your child was providing at least half of your financial support.
+If approved, one surviving parent can get 82.5% of the child's Primary Insurance Amount (PIA), or two surviving parents each can receive 75%. The benefit may stop if you get married or become entitled to your own or a spouse's retirement benefit that's higher than the survivor benefit.
+
+Build your best retirement with a financial planner
+Social Security replaces only a portion of your pre-retirement earnings, but it provides guaranteed income for the rest of your life after you stop working. The program may also be a source of financial support if you become disabled and an income stream that can help your loved ones after you pass away.
+
+It's wise to make Social Security a foundational component of your post-career financial strategy. A Thrivent financial advisor can help you and your family understand how to get the most out of your hard-earned Social Security benefits

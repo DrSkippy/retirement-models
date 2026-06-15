@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import AppShell from "./components/layout/AppShell";
 import ComparePage from "./pages/ComparePage";
+import ConfigPage from "./pages/ConfigPage";
 import McDetailPage from "./pages/McDetailPage";
 import McListPage from "./pages/McListPage";
 import RunDetailPage from "./pages/RunDetailPage";
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/mc" element={<McListPage />} />
         <Route path="/mc/:id" element={<McDetailPage />} />
         <Route path="/compare" element={<ComparePage />} />
+        <Route path="/config" element={<ConfigPage />} />
       </Route>
     </Routes>
   );

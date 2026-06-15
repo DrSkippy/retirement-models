@@ -9,6 +9,7 @@ from flask_cors import CORS
 
 from api.blueprints.assets import assets_bp
 from api.blueprints.config_bp import config_bp
+from api.blueprints.configuration_bp import configuration_bp
 from api.blueprints.mc import mc_bp
 from api.blueprints.runs import runs_bp
 from api.blueprints.tax import tax_bp
@@ -36,11 +37,12 @@ def create_app() -> Flask:
     app.json_provider_class = _DecimalDateEncoder
     app.json = _DecimalDateEncoder(app)
 
-    app.register_blueprint(runs_bp,   url_prefix="/api")
-    app.register_blueprint(assets_bp, url_prefix="/api")
-    app.register_blueprint(tax_bp,    url_prefix="/api")
-    app.register_blueprint(mc_bp,     url_prefix="/api")
-    app.register_blueprint(config_bp, url_prefix="/api")
+    app.register_blueprint(runs_bp,          url_prefix="/api")
+    app.register_blueprint(assets_bp,        url_prefix="/api")
+    app.register_blueprint(tax_bp,           url_prefix="/api")
+    app.register_blueprint(mc_bp,            url_prefix="/api")
+    app.register_blueprint(config_bp,        url_prefix="/api")
+    app.register_blueprint(configuration_bp, url_prefix="/api")
 
     @app.get("/health")
     def health() -> Response:
