@@ -1,0 +1,13 @@
+# Copy this file to .envrc and fill in the real values.
+# Never commit .envrc — it is listed in .gitignore.
+# Load with direnv: https://direnv.net/
+
+# PostgreSQL connection (matches DatabaseSettings env_prefix="DB_")
+export DB_HOST=localhost
+export DB_PORT=5434
+export DB_NAME=retirement
+export DB_USER=retirement_user
+export DB_PASSWORD=changeme
+
+# Optional: override the configuration directory mounted into Docker
+# export CONFIGURATION_PATH=/path/to/your/configuration

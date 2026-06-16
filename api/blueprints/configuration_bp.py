@@ -2,10 +2,13 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from pathlib import Path
 
 from flask import Blueprint, Response, abort, jsonify, request
+
+logger = logging.getLogger(__name__)
 
 configuration_bp = Blueprint("configuration", __name__)
 
@@ -27,6 +30,7 @@ def _write_json(path: Path, data: object) -> None:
 @configuration_bp.get("/configuration")
 def get_world_config() -> Response:
     """GET /api/configuration — current config.json."""
+    logger.debug("GET /api/configuration")
     return jsonify(_read_json(_CONFIG_FILE))
 
 
@@ -37,18 +41,20 @@ def put_world_config() -> Response:
     if data is None:
         abort(400)
     _write_json(_CONFIG_FILE, data)
+    logger.info("World config updated")
     return jsonify({"status": "ok"})
 
 
 @configuration_bp.get("/configuration/assets")
 def list_assets() -> Response:
     """GET /api/configuration/assets — list all asset JSON files."""
+    logger.debug("GET /api/configuration/assets")
     assets = []
     for path in sorted(_ASSETS_DIR.glob("*.json")):
         try:
             assets.append({"filename": path.name, "data": _read_json(path)})
-        except (json.JSONDecodeError, OSError):
-            pass
+        except (json.JSONDecodeError, OSError) as e:
+            logger.warning("Skipping unreadable asset file %s: %s", path.name, e)
     return jsonify(assets)
 
 
@@ -60,6 +66,7 @@ def get_asset(filename: str) -> Response:
     path = _ASSETS_DIR / filename
     if not path.exists():
         abort(404)
+    logger.debug("GET /api/configuration/assets/%s", filename)
     return jsonify(_read_json(path))
 
 
@@ -72,6 +79,7 @@ def put_asset(filename: str) -> Response:
     if data is None:
         abort(400)
     _write_json(_ASSETS_DIR / filename, data)
+    logger.info("Asset %s written", filename)
     return jsonify({"status": "ok"})
 
 
@@ -84,4 +92,5 @@ def delete_asset(filename: str) -> Response:
     if not path.exists():
         abort(404)
     path.unlink()
+    logger.info("Asset %s deleted", filename)
     return jsonify({"status": "ok"})

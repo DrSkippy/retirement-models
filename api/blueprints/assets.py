@@ -1,10 +1,14 @@
 """Blueprint: per-asset time-series endpoint."""
 from __future__ import annotations
 
+import logging
+
 from flask import Blueprint, Response, abort, jsonify, request
 from sqlalchemy import text
 
 from models.db import get_connection, load_run_assets
+
+logger = logging.getLogger(__name__)
 
 assets_bp = Blueprint("assets", __name__)
 
@@ -17,8 +21,8 @@ def get_run_assets(run_id: int) -> Response:
         asset (str): Filter to a single asset name.
     """
     asset_name = request.args.get("asset")
+    logger.debug("GET /api/runs/%d/assets asset=%s", run_id, asset_name)
     with get_connection() as conn:
-        # Verify run exists
         exists = conn.execute(
             text("SELECT 1 FROM simulation_runs WHERE id = :id"),
             {"id": run_id},
@@ -26,4 +30,5 @@ def get_run_assets(run_id: int) -> Response:
         if exists is None:
             abort(404)
         rows = load_run_assets(conn, run_id, asset_name=asset_name)
+    logger.debug("Returning %d asset rows for run %d", len(rows), run_id)
     return jsonify(rows)
