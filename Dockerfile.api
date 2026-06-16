@@ -18,11 +18,17 @@ COPY configuration/ configuration/
 COPY config.yaml ./
 
 ENV PATH="/app/.venv/bin:$PATH"
+ENV GUNICORN_WORKERS=2
+ENV GUNICORN_TIMEOUT=120
 
 EXPOSE 8000
-CMD ["gunicorn", \
-     "--bind", "0.0.0.0:8000", \
-     "--workers", "2", \
-     "--timeout", "120", \
-     "--access-logfile", "-", \
-     "api:create_app()"]
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=15s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+
+CMD exec gunicorn \
+    --bind "0.0.0.0:8000" \
+    --workers "${GUNICORN_WORKERS}" \
+    --timeout "${GUNICORN_TIMEOUT}" \
+    --access-logfile "-" \
+    "api:create_app()"

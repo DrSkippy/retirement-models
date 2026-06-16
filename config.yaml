@@ -6,7 +6,7 @@ paths:
   output_dir: ./output
 
 logging:
-  level: DEBUG
+  level: INFO
   file: ./log/assets.log
   max_bytes: 2500000
   backup_count: 3

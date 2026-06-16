@@ -8,7 +8,7 @@ services:
       - DB_USER=${DB_USER}
       - DB_PASSWORD=${DB_PASSWORD}
     volumes:
-      - /home/scott/Working/retirement-models/configuration:/app/configuration
+      - ${CONFIGURATION_PATH:-./configuration}:/app/configuration
     ports:
       - 8185:8000
     restart: unless-stopped

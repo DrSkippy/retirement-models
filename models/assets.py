@@ -520,18 +520,22 @@ class Equity(Asset):
             self.growth_rate_volatility = 0.0
 
     def withdraw_income(self, amount: float) -> None:
-        """Reduce asset value by a withdrawal amount.
+        """Reduce asset value by a withdrawal amount and track realised capital gains.
 
         Parameters:
             amount: The amount to withdraw.
         """
+        # Realised gain = the fraction of the withdrawn amount that represents growth.
+        # If the asset has not appreciated, capital gains are zero.
+        if self.value > self.initial_value and self.value > 0:
+            gain_ratio = (self.value - self.initial_value) / self.value
+            self.capital_gains = amount * gain_ratio
+        else:
+            self.capital_gains = 0.0
         self.value -= amount
-        self.capital_gains = (
-            self.initial_value * self.growth_rate ** period  # type: ignore[name-defined]
-        )
         logging.info(
             f"Withdrew ${amount:,.2f} from {self.name} value = {self.value:,.2f}, "
-            f"capital gains = {self.capital_gains:,.2}"
+            f"capital gains = {self.capital_gains:,.2f}"
         )
 
     def taxable_income(self) -> float:
